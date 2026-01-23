@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ========== CORE MODELS ==========
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String // Bcrypt hashed password
+  name         String?
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // RELATIONS
+  linkHubs LinkHub[]
+  apiKeys  ApiKey[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // RELATIONS
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model LinkHub {
+  id          String   @id @default(cuid())
+  userId      String
+  slug        String   @unique
+  title       String
+  description String?
+  theme       String // Theme configuration JSON (stored as String for SQLite)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // RELATIONS
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links  Link[]
+  rules  Rule[]
+  visits Visit[]
+
+  @@map("link_hubs")
+}
+
+model Link {
+  id         String   @id @default(cuid())
+  hubId      String
+  title      String
+  url        String
+  icon       String?
+  position   Int // For ordering
+  isActive   Boolean  @default(true)
+  clickCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // RELATIONS
+  hub    LinkHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  clicks Click[]
+
+  @@map("links")
+}
+
+model Rule {
+  id         String   @id @default(cuid())
+  hubId      String
+  name       String
+  conditions String // JSON array of conditions (stored as String)
+  actions    String // JSON array of actions (stored as String)
+  priority   Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  // RELATIONS
+  hub LinkHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@map("rules")
+}
+
+model Visit {
+  id         String   @id @default(cuid())
+  hubId      String
+  ipAddress  String?
+  userAgent  String?
+  referrer   String?
+  country    String?
+  deviceType String? // mobile, desktop, tablet
+  visitedAt  DateTime @default(now())
+
+  // RELATIONS
+  hub   LinkHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  Click Click[]
+
+  @@map("visits")
+}
+
+model Click {
+  id        String   @id @default(cuid())
+  linkId    String
+  visitId   String?
+  clickedAt DateTime @default(now())
+
+  // RELATIONS
+  link  Link   @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  visit Visit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@map("clicks")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  key         String    @unique
+  name        String
+  permissions String // Array of permissions (stored as String)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  // RELATIONS
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
