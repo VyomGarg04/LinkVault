@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { z } from 'zod';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
@@ -122,10 +122,6 @@ export const reorderLinks = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ message: 'Invalid payload' });
         }
 
-        // Verify ownership (checking first link is enough for batch if all from same hub, but strictly we should check all or assume frontend sends valid data from one hub context, secured by hub ownership check usually done before this call or by verifying each)
-        // For simplicity and performance, we'll verify the first one and assume they are from the same hub context which the user owns.
-        // A more robust way: fetch all links by IDs and check user ID.
-
         const firstLink = await prisma.link.findUnique({ where: { id: links[0].id }, include: { hub: true } });
         if (!firstLink || firstLink.hub.userId !== req.user.id) {
             return res.status(403).json({ message: 'Not authorized' });
@@ -146,3 +142,30 @@ export const reorderLinks = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+// POST /api/links/:id/click
+export const trackLinkClick = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const link = await prisma.link.findUnique({ where: { id } });
+        if (!link) return res.status(404).json({ message: 'Link not found' });
+
+        // Increment click count
+        await prisma.link.update({
+            where: { id },
+            data: { clickCount: { increment: 1 } }
+        });
+
+        // Record detailed click
+        await prisma.click.create({
+            data: {
+                linkId: id,
+            }
+        });
+
+        res.json({ message: 'Click recorded' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};

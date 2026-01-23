@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import hubRoutes from './routes/hub.routes';
 import linkRoutes from './routes/link.routes';
+import publicRoutes from './routes/public.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/hubs', hubRoutes);
 app.use('/api', linkRoutes);
+app.use('/api/public', publicRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {

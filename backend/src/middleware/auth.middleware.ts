@@ -21,7 +21,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         const decoded = verifyToken(token);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true, email: true, name: true, avatar: true }
+            select: { id: true, email: true, name: true, avatar: true, username: true }
         });
 
         if (!user) {

@@ -14,6 +14,7 @@ model User {
   email        String   @unique
   passwordHash String // Bcrypt hashed password
   name         String?
+  username     String   @unique @default(cuid()) // Default for existing users, will implement generation on register
   avatar       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
