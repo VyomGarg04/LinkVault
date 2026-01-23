@@ -37,17 +37,17 @@ async function testPhase2() {
     console.log('3. Fetching My Hubs...');
     const hubsRes = await client.get(`${BASE_URL}/hubs`);
     if (hubsRes.data.hubs.length > 0 && hubsRes.data.hubs[0].id === hubId) {
-        console.log('✅ Hub listed correctly');
+      console.log('✅ Hub listed correctly');
     } else {
-        throw new Error('Hub not found in list');
+      throw new Error('Hub not found in list');
     }
 
     // 4. Add Link
     console.log('4. Adding Link to Hub...');
     const linkRes = await client.post(`${BASE_URL}/hubs/${hubId}/links`, {
-        title: 'Google',
-        url: 'https://google.com',
-        icon: 'search'
+      title: 'Google',
+      url: 'https://google.com',
+      icon: 'search'
     });
     linkId = linkRes.data.link.id;
     console.log('✅ Link Created:', linkId);
@@ -56,15 +56,15 @@ async function testPhase2() {
     console.log('5. Fetching Hub Links...');
     const linksRes = await client.get(`${BASE_URL}/hubs/${hubId}/links`);
     if (linksRes.data.links.length === 1 && linksRes.data.links[0].id === linkId) {
-        console.log('✅ Link listed correctly');
+      console.log('✅ Link listed correctly');
     } else {
-        throw new Error('Link not found in list');
+      throw new Error('Link not found in list');
     }
 
     // 6. Update Link
     console.log('6. Updating Link...');
     await client.put(`${BASE_URL}/links/${linkId}`, {
-        title: 'Google Updated'
+      title: 'Google Updated'
     });
     console.log('✅ Link Updated');
 
