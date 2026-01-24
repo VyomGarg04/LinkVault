@@ -35,15 +35,20 @@ const getMyHubs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             orderBy: { createdAt: 'desc' },
             include: {
                 links: { where: { deletedAt: null } },
-                visits: true
+                _count: {
+                    select: { visits: true }
+                }
             }
         });
-        const hubsWithCount = hubs.map(hub => (Object.assign(Object.assign({}, hub), { _count: {
-                links: hub.links.length,
-                visits: hub.visits.length
-            }, links: undefined // Optional: don't send full links list to light dashboard
-         })));
-        res.json({ hubs: hubsWithCount });
+        // Manually calculate counts and sanitize response
+        const hubsWithCounts = hubs.map(hub => {
+            var _a;
+            return (Object.assign(Object.assign({}, hub), { links: undefined, _count: {
+                    links: hub.links.length,
+                    visits: ((_a = hub._count) === null || _a === void 0 ? void 0 : _a.visits) || 0
+                } }));
+        });
+        res.json({ hubs: hubsWithCounts });
     }
     catch (error) {
         res.status(500).json({ message: error.message });

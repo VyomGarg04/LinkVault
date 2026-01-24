@@ -43,14 +43,15 @@ const evaluateCondition = (condition, context) => {
             return condition.days.includes(today);
         }
         case 'DEVICE_TYPE': {
-            if (!condition.devices || !Array.isArray(condition.devices))
+            if (!condition.devices)
                 return true;
-            // Simple check
+            const allowedDevices = Array.isArray(condition.devices) ? condition.devices : [condition.devices];
             const userAgent = (context.userAgent || '').toLowerCase();
             const isMobile = /mobile|android|iphone|ipad|ipod/i.test(userAgent);
-            const device = isMobile ? 'mobile' : 'desktop';
-            const passed = condition.devices.includes(device);
-            console.log(`[Eval] Device Check: User=${device} Allowed=${condition.devices} -> ${passed}`);
+            const currentDevice = isMobile ? 'mobile' : 'desktop';
+            console.log(`[Eval] Device Check: UserUA=${userAgent.substring(0, 20)}... Detected=${currentDevice} Allowed=${allowedDevices}`);
+            // Case-insensitive check
+            const passed = allowedDevices.some((d) => d.toLowerCase() === currentDevice);
             return passed;
         }
         case 'LOCATION': {

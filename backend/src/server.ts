@@ -44,7 +44,12 @@ app.get('/health', (req, res) => {
 // Error Middleware
 app.use(errorHandler);
 
-// Start Server
-app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Export app for test/serverless usage
+export default app;
+
+// Only listen if not running in a serverless environment (or explicitly called)
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+    app.listen(Number(PORT), '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
