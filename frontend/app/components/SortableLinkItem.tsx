@@ -65,13 +65,13 @@ export function SortableLinkItem({
                 </button>
                 <button
                     onClick={() => onEditLink(link)}
-                    className="p-2 text-slate-500 hover:text-white hover:bg-slate-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="p-2 text-slate-500 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
                 >
                     <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                     onClick={() => onDeleteLink(link.id)}
-                    className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>

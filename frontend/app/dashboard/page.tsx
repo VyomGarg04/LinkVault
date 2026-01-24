@@ -8,13 +8,13 @@ import { LinkHub } from '@/types';
 import Link from 'next/link';
 import { Plus, ExternalLink, Edit2, BarChart2, Trash2, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import UserDropdown from '@/app/components/UserDropdown';
 
 export default function DashboardPage() {
     const { user, isLoading, logout } = useAuth();
     const router = useRouter();
     const [hubs, setHubs] = useState<LinkHub[]>([]);
     const [fetching, setFetching] = useState(true);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -74,58 +74,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="relative">
-                                <button
-                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
-                                >
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm overflow-hidden ring-2 ring-black">
-                                        {user.avatar ? (
-                                            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-                                        ) : (
-                                            user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()
-                                        )}
-                                    </div>
-                                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {isDropdownOpen && (
-                                    <>
-                                        <div
-                                            className="fixed inset-0 z-40"
-                                            onClick={() => setIsDropdownOpen(false)}
-                                        />
-                                        <div className="absolute right-0 mt-2 w-56 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 overflow-hidden">
-                                            <div className="p-4 border-b border-white/5 bg-white/5">
-                                                <p className="text-sm font-bold text-white truncate">{user.name || 'User'}</p>
-                                                <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                                            </div>
-                                            <div className="p-1.5 space-y-0.5">
-                                                <button
-                                                    onClick={() => router.push('/dashboard/profile')}
-                                                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                                                >
-                                                    <User className="w-4 h-4" />
-                                                    <span>Profile</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => router.push('/dashboard/settings')}
-                                                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                                                >
-                                                    <Settings className="w-4 h-4" />
-                                                    <span>Settings</span>
-                                                </button>
-                                                <div className="h-px bg-white/5 my-1 mx-2" />
-                                                <button
-                                                    onClick={() => logout()}
-                                                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors text-left"
-                                                >
-                                                    <LogOut className="w-4 h-4" />
-                                                    <span>Sign Out</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
+                                <UserDropdown user={user} logout={logout} />
                             </div>
                         </div>
                     </div>
@@ -186,25 +135,24 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="flex justify-between items-center pt-4 border-t border-white/5 opacity-60 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex space-x-1">
-                                        <Link href={`/hubs/${hub.id}/edit`} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors" title="Edit">
+                                        <Link href={`/hubs/${hub.id}/edit`} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-all hover:scale-110" title="Edit">
                                             <Edit2 className="w-4 h-4" />
                                         </Link>
-                                        <Link href={`/analytics/${hub.id}`} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors" title="Analytics">
+                                        <Link href={`/analytics/${hub.id}`} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-all hover:scale-110" title="Analytics">
                                             <BarChart2 className="w-4 h-4" />
                                         </Link>
                                     </div>
                                     <div className="flex space-x-1">
                                         {user?.username && (
-                                            <a href={`/${user.username}/${hub.slug}`} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-green-400 transition-colors" title="View Public">
+                                            <a href={`/${user.username}/${hub.slug}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-green-400 transition-all hover:scale-110" title="View Public">
                                                 <ExternalLink className="w-4 h-4" />
                                             </a>
                                         )}
                                         <button
                                             onClick={(e) => onDeleteHub(e, hub.id)}
-                                            className="p-2 hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                                            className="p-2 bg-white/5 hover:bg-red-500/10 rounded-lg text-slate-300 hover:text-red-400 transition-all hover:scale-110"
                                             title="Delete Hub"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -215,7 +163,7 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 )}
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

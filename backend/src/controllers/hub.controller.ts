@@ -25,10 +25,23 @@ export const getMyHubs = async (req: AuthRequest, res: Response) => {
             orderBy: { createdAt: 'desc' },
             include: {
                 links: { where: { deletedAt: null } },
-                visits: true
+                _count: {
+                    select: { visits: true }
+                }
             }
         });
-        res.json({ hubs });
+
+        // Manually calculate counts and sanitize response
+        const hubsWithCounts = hubs.map(hub => ({
+            ...hub,
+            links: undefined, // Don't send full links list to dashboard
+            _count: {
+                links: hub.links.length,
+                visits: hub._count?.visits || 0
+            }
+        }));
+
+        res.json({ hubs: hubsWithCounts });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }

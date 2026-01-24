@@ -35,7 +35,7 @@ import ShareModal from '@/app/components/ShareModal';
 import LinkStyleEditor from '@/app/components/LinkStyleEditor';
 import HubSettingsModal from '@/app/components/HubSettingsModal';
 import { ThemeConfig, LinkItem, LinkStyle } from '@/types';
-import { Share2, Palette, Wand2, Settings, User } from 'lucide-react';
+import { Share2, Palette, Wand2, Settings, User, Smartphone, Monitor } from 'lucide-react';
 
 // Schemas
 
@@ -70,6 +70,8 @@ export default function HubEditorPage() {
     }, [user]);
     const [hub, setHub] = useState<LinkHub | null>(null);
     const [links, setLinks] = useState<LinkItem[]>([]);
+    const [rules, setRules] = useState<any[]>([]); // Rules State
+    const [draftRule, setDraftRule] = useState<any | null>(null); // Draft Rule State for Preview
     const [loading, setLoading] = useState(true);
     const [isAddingLink, setIsAddingLink] = useState(false);
     const [editingLink, setEditingLink] = useState<LinkItem | null>(null);
@@ -84,6 +86,7 @@ export default function HubEditorPage() {
     const [activeTab, setActiveTab] = useState<'links' | 'rules' | 'appearance'>('links');
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
 
     // Form handling
     const { register, handleSubmit, reset, control, watch, formState: { errors, isSubmitting } } = useForm<LinkFormData>({
@@ -95,12 +98,14 @@ export default function HubEditorPage() {
         if (user && params.id) {
             const fetchData = async () => {
                 try {
-                    const [hubRes, linksRes] = await Promise.all([
+                    const [hubRes, linksRes, rulesRes] = await Promise.all([
                         api.get(`/hubs/${params.id}`),
-                        api.get(`/hubs/${params.id}/links`)
+                        api.get(`/hubs/${params.id}/links`),
+                        api.get(`/hubs/${params.id}/rules`) // Fetch Rules for Live Preview
                     ]);
                     setHub(hubRes.data.hub);
                     setLinks(linksRes.data.links);
+                    setRules(rulesRes.data.rules);
 
                     try {
                         const parsed = typeof hubRes.data.hub.theme === 'string'
@@ -505,20 +510,66 @@ export default function HubEditorPage() {
                             </div>
                         </>
                     ) : activeTab === 'rules' ? (
-                        <RuleEditor hubId={params.id as string} links={links} />
+                        <RuleEditor
+                            hubId={params.id as string}
+                            links={links}
+                            onRulesChange={(updatedRules) => setRules(updatedRules)} // Callback to update preview
+                        />
                     ) : (
                         <ThemeEditor theme={currentTheme} onChange={onThemeChange} />
                     )}
                 </div>
 
                 {/* Preview Column */}
-                <div className="w-full md:w-[320px] shrink-0">
+                <div className={`shrink-0 transition-all duration-500 ease-in-out ${previewMode === 'mobile' ? 'w-full md:w-[320px]' : 'w-full md:w-[600px]'}`}>
                     <div className="sticky top-24">
-                        <h2 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Preview</h2>
-                        <div className="w-full aspect-[9/19.5] bg-black border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden relative">
-                            {/* Simulated Mobile Mockup */}
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Preview</h2>
+                            <div className="bg-slate-900 border border-slate-700 rounded-lg p-1 flex">
+                                <button
+                                    onClick={() => setPreviewMode('mobile')}
+                                    className={`p-1.5 rounded-md transition-all ${previewMode === 'mobile' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                                    title="Mobile View"
+                                >
+                                    <Smartphone className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setPreviewMode('desktop')}
+                                    className={`p-1.5 rounded-md transition-all ${previewMode === 'desktop' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                                    title="Desktop View"
+                                >
+                                    <Monitor className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Preview Frame */}
+                        <div
+                            className={`transition-all duration-500 ease-in-out bg-slate-900 shadow-2xl overflow-hidden relative mx-auto ${previewMode === 'mobile'
+                                ? 'w-full aspect-[9/19.5] border-[12px] border-slate-800 rounded-[3rem]'
+                                : 'w-full aspect-[16/10] rounded-xl border border-slate-700/50 mb-auto'
+                                }`}
+                        >
+                            {/* Desktop Browser Bar (Only visible in desktop mode) */}
+                            {previewMode === 'desktop' && (
+                                <div className="h-8 bg-slate-800 border-b border-slate-700 flex items-center px-4 space-x-2">
+                                    <div className="flex space-x-1.5">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+                                    </div>
+                                    <div className="flex-1 flex justify-center px-4">
+                                        <div className="bg-slate-900/50 rounded-md w-full max-w-[200px] h-5 flex items-center justify-center text-[10px] text-slate-500 font-mono">
+                                            linkvault.io/{hub.slug}
+                                        </div>
+                                    </div>
+                                    <div className="w-10"></div> {/* Spacer */}
+                                </div>
+                            )}
+
+                            {/* Simulated Screen */}
                             <div
-                                className="absolute top-0 left-0 w-full h-full overflow-y-auto hide-scrollbar p-6 flex flex-col items-center transition-colors duration-300"
+                                className={`absolute left-0 w-full overflow-y-auto flex flex-col items-center transition-colors duration-300 ${previewMode === 'desktop' ? 'top-8 h-[calc(100%-2rem)]' : 'top-0 h-full p-6'}`}
                                 style={{
                                     backgroundColor: currentTheme.bgColor,
                                     color: currentTheme.textColor,
@@ -529,82 +580,151 @@ export default function HubEditorPage() {
                                         lato: 'var(--font-lato)',
                                         oswald: 'var(--font-oswald)',
                                         montserrat: 'var(--font-montserrat)',
-                                    }[currentTheme.fontFamily] || 'var(--font-inter)'
+                                    }[currentTheme.fontFamily] || 'var(--font-inter)',
+                                    scrollbarWidth: 'none', // Firefox
+                                    msOverflowStyle: 'none'  // IE/Edge
                                 }}
                             >
+                                <style jsx>{`
+                                    div::-webkit-scrollbar {
+                                        display: none;
+                                    }
+                                `}</style>
+                                {/* Desktop Background Elements simulation */}
+                                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
 
-                                {/* Avatar Section */}
-                                <div className="relative group/avatar cursor-pointer mb-6" onClick={() => setShowAvatarPicker(true)}>
-                                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-700/50 group-hover/avatar:border-green-500 transition-colors shadow-xl bg-slate-800 flex items-center justify-center relative z-10">
-                                        {currentTheme.avatar ? (
-                                            <img src={currentTheme.avatar} alt="Profile" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-3xl font-bold opacity-50 text-slate-400">{hub.title.charAt(0).toUpperCase()}</span>
-                                        )}
+                                <div className={`relative z-10 w-full flex flex-col items-center ${previewMode === 'desktop' ? 'py-12' : ''}`}>
+                                    {/* Avatar Section */}
+                                    <div className="relative group/avatar cursor-pointer mb-6" onClick={() => setShowAvatarPicker(true)}>
+                                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-700/50 group-hover/avatar:border-white transition-colors shadow-xl bg-slate-800 flex items-center justify-center relative z-10">
+                                            {currentTheme.avatar ? (
+                                                <img src={currentTheme.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-3xl font-bold opacity-50 text-slate-400">{hub.title.charAt(0).toUpperCase()}</span>
+                                            )}
+                                        </div>
+                                        <div className="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full shadow-lg opacity-80 group-hover/avatar:opacity-100 transition-all transform translate-y-2 group-hover/avatar:translate-y-0 z-20">
+                                            <Camera className="w-4 h-4" />
+                                        </div>
                                     </div>
-                                    <div className="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full shadow-lg opacity-80 group-hover/avatar:opacity-100 transition-all transform translate-y-2 group-hover/avatar:translate-y-0 z-20">
-                                        <Camera className="w-4 h-4" />
+
+                                    <h3 className="font-bold text-xl mb-1 text-center px-4" style={{ color: currentTheme.textColor }}>{hub.title}</h3>
+                                    <p className="text-sm text-center mb-8 px-4 opacity-70" style={{ color: currentTheme.textColor }}>{hub.description}</p>
+
+                                    <div className={`w-full space-y-3 px-2 ${previewMode === 'desktop' ? 'max-w-md' : ''}`}>
+                                        {(() => {
+                                            // 1. Start with Active Links
+                                            let visibleLinkIds = new Set(links.filter(l => l.isActive).map(l => l.id));
+
+                                            // 2. Apply Rules (Client-Side Simulation)
+                                            // Mix in Draft Rule if exists
+                                            let activeRules = [...rules];
+                                            if (draftRule) {
+                                                if (draftRule.id) {
+                                                    activeRules = activeRules.map(r => r.id === draftRule.id ? { ...r, ...draftRule } : r);
+                                                } else {
+                                                    // New rule needs ID to be safe, but local sim ok
+                                                    activeRules.push({ ...draftRule, isActive: draftRule.isActive ?? true, priority: draftRule.priority ?? 0 });
+                                                }
+                                            }
+
+                                            // Sort rules by priority (desc)
+                                            const sortedRules = activeRules.filter(r => r.isActive).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+                                            sortedRules.forEach(rule => {
+                                                // Evaluate Conditions
+                                                let conditionsMet = true;
+                                                // Safe Parsing
+                                                let conditions = [];
+                                                try { conditions = typeof rule.conditions === 'string' ? JSON.parse(rule.conditions) : rule.conditions || []; } catch (e) { }
+
+                                                for (const condition of conditions) {
+                                                    if (condition.type === 'DEVICE_TYPE') {
+                                                        const allowed = condition.devices || []; // Array or string
+                                                        const allowedArr = Array.isArray(allowed) ? allowed : [allowed];
+                                                        const normalizedAllowed = allowedArr.map((d: string) => d.toLowerCase());
+
+                                                        // Preview Mode Check
+                                                        const isMobile = previewMode === 'mobile';
+                                                        const currentDevice = isMobile ? 'mobile' : 'desktop';
+
+                                                        if (!normalizedAllowed.includes(currentDevice)) {
+                                                            conditionsMet = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                    // Time check could be added here if we had current time simulation
+                                                }
+
+                                                if (conditionsMet) {
+                                                    let actions = [];
+                                                    try { actions = typeof rule.actions === 'string' ? JSON.parse(rule.actions) : rule.actions || []; } catch (e) { }
+
+                                                    actions.forEach((action: any) => {
+                                                        if (action.type === 'SHOW_LINK' && action.linkId) visibleLinkIds.add(action.linkId);
+                                                        if (action.type === 'HIDE_LINK' && action.linkId) visibleLinkIds.delete(action.linkId);
+                                                    });
+                                                }
+                                            });
+
+                                            const visibleLinks = links.filter(l => visibleLinkIds.has(l.id));
+
+                                            return visibleLinks.map(link => {
+                                                let customStyle: LinkStyle = {};
+                                                // Live Preview: If this link is being edited, use the watched form value
+                                                const isEditing = editingLink?.id === link.id;
+                                                // Use watched value if editing, otherwise saved value
+                                                const formStyle = isEditing ? watch('style') : null;
+                                                const linkStyleString = formStyle || link.style;
+
+                                                try {
+                                                    if (linkStyleString) customStyle = JSON.parse(linkStyleString);
+                                                } catch (e) { }
+
+                                                const linkBg = customStyle.highlight ? (customStyle.bgColor || '#22c55e') : currentTheme.buttonBgColor;
+                                                const linkText = customStyle.highlight ? (customStyle.textColor || '#ffffff') : currentTheme.buttonTextColor;
+                                                const animationClass = customStyle.animation ? `animate-${customStyle.animation}` : '';
+
+                                                // Font Mapping
+                                                const fontMap: Record<string, string> = {
+                                                    inter: 'var(--font-inter)',
+                                                    roboto: 'var(--font-roboto)',
+                                                    playfair: 'var(--font-playfair)',
+                                                    lato: 'var(--font-lato)',
+                                                    oswald: 'var(--font-oswald)',
+                                                    montserrat: 'var(--font-montserrat)',
+                                                };
+                                                const linkFont = customStyle.fontFamily ? fontMap[customStyle.fontFamily] : undefined;
+
+                                                return (
+                                                    <div
+                                                        key={link.id}
+                                                        className={`glass-liquid w-full p-4 rounded-xl text-center text-sm font-medium hover:scale-[1.02] transition-all cursor-pointer flex items-center justify-center relative shadow-md ${animationClass}`}
+                                                        style={{
+                                                            backgroundColor: linkBg,
+                                                            color: linkText,
+                                                            fontFamily: linkFont
+                                                        }}
+                                                    >
+                                                        {/* Icon */}
+                                                        {getFaviconUrl(link.url) && (
+                                                            <img
+                                                                src={getFaviconUrl(link.url)!}
+                                                                alt=""
+                                                                className="absolute left-4 w-5 h-5 object-contain opacity-90"
+                                                                onError={(e) => e.currentTarget.style.display = 'none'}
+                                                            />
+                                                        )}
+                                                        <span className="truncate max-w-full px-4">{isEditing ? watch('title') : link.title}</span>
+                                                    </div>
+                                                )
+                                            })
+                                        })()}
                                     </div>
-                                </div>
-
-                                <h3 className="font-bold text-xl mb-1 text-center px-4" style={{ color: currentTheme.textColor }}>{hub.title}</h3>
-                                <p className="text-sm text-center mb-8 px-4 opacity-70" style={{ color: currentTheme.textColor }}>{hub.description}</p>
-
-                                <div className="w-full space-y-3 px-2">
-                                    {links.filter(l => l.isActive).map(link => {
-                                        let customStyle: LinkStyle = {};
-                                        // Live Preview: If this link is being edited, use the watched form value
-                                        const isEditing = editingLink?.id === link.id;
-                                        // Use watched value if editing, otherwise saved value
-                                        const formStyle = isEditing ? watch('style') : null;
-                                        const linkStyleString = formStyle || link.style;
-
-                                        try {
-                                            if (linkStyleString) customStyle = JSON.parse(linkStyleString);
-                                        } catch (e) { }
-
-                                        const linkBg = customStyle.highlight ? (customStyle.bgColor || '#22c55e') : currentTheme.buttonBgColor;
-                                        const linkText = customStyle.highlight ? (customStyle.textColor || '#ffffff') : currentTheme.buttonTextColor;
-                                        const animationClass = customStyle.animation ? `animate-${customStyle.animation}` : '';
-
-                                        // Font Mapping
-                                        const fontMap: Record<string, string> = {
-                                            inter: 'var(--font-inter)',
-                                            roboto: 'var(--font-roboto)',
-                                            playfair: 'var(--font-playfair)',
-                                            lato: 'var(--font-lato)',
-                                            oswald: 'var(--font-oswald)',
-                                            montserrat: 'var(--font-montserrat)',
-                                        };
-                                        const linkFont = customStyle.fontFamily ? fontMap[customStyle.fontFamily] : undefined;
-
-                                        return (
-                                            <div
-                                                key={link.id}
-                                                className={`glass-liquid w-full p-4 rounded-xl text-center text-sm font-medium hover:scale-[1.02] transition-all cursor-pointer flex items-center justify-center relative shadow-md ${animationClass}`}
-                                                style={{
-                                                    backgroundColor: linkBg,
-                                                    color: linkText,
-                                                    fontFamily: linkFont
-                                                }}
-                                            >
-                                                {/* Icon */}
-                                                {getFaviconUrl(link.url) && (
-                                                    <img
-                                                        src={getFaviconUrl(link.url)!}
-                                                        alt=""
-                                                        className="absolute left-4 w-5 h-5 object-contain opacity-90"
-                                                        onError={(e) => e.currentTarget.style.display = 'none'}
-                                                    />
-                                                )}
-                                                <span className="truncate max-w-full px-4">{isEditing ? watch('title') : link.title}</span>
-                                            </div>
-                                        )
-                                    })}
                                 </div>
                             </div>
                         </div>
-                        <p className="text-center text-xs text-slate-500 mt-4">Live Preview</p>
+                        <p className="text-center text-xs text-slate-500 mt-4">Live Preview ({previewMode === 'mobile' ? 'Mobile' : 'Desktop'})</p>
                     </div>
                 </div>
 

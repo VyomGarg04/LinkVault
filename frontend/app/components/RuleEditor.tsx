@@ -30,9 +30,11 @@ interface Rule {
 interface RuleEditorProps {
     hubId: string;
     links: any[]; // LinkItem[]
+    onRulesChange?: (rules: Rule[]) => void;
+    onDraftChange?: (rule: Partial<Rule> | null) => void;
 }
 
-export default function RuleEditor({ hubId, links }: RuleEditorProps) {
+export default function RuleEditor({ hubId, links, onRulesChange, onDraftChange }: RuleEditorProps) {
     const [rules, setRules] = useState<Rule[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
@@ -47,6 +49,17 @@ export default function RuleEditor({ hubId, links }: RuleEditorProps) {
         actions: [],
     });
 
+    // Notify parent of draft changes
+    useEffect(() => {
+        if (isCreating) {
+            // Include existing ID if editing
+            const draft = editingRuleId ? { ...newRule, id: editingRuleId } : newRule;
+            onDraftChange?.(draft);
+        } else {
+            onDraftChange?.(null);
+        }
+    }, [newRule, isCreating, editingRuleId]);
+
     useEffect(() => {
         fetchRules();
     }, [hubId]);
@@ -55,6 +68,7 @@ export default function RuleEditor({ hubId, links }: RuleEditorProps) {
         try {
             const { data } = await api.get(`/hubs/${hubId}/rules`);
             setRules(data.rules);
+            onRulesChange?.(data.rules);
         } catch (error) {
             console.error("Failed to fetch rules", error);
         } finally {
@@ -67,11 +81,15 @@ export default function RuleEditor({ hubId, links }: RuleEditorProps) {
         try {
             if (editingRuleId) {
                 const { data } = await api.put(`/hubs/${hubId}/rules/${editingRuleId}`, newRule);
-                setRules(rules.map(r => r.id === editingRuleId ? data.rule : r));
+                const updatedRules = rules.map(r => r.id === editingRuleId ? data.rule : r);
+                setRules(updatedRules);
+                onRulesChange?.(updatedRules);
                 toast.success("Rule updated");
             } else {
                 const { data } = await api.post(`/hubs/${hubId}/rules`, newRule);
-                setRules([data.rule, ...rules]);
+                const updatedRules = [data.rule, ...rules];
+                setRules(updatedRules);
+                onRulesChange?.(updatedRules);
                 toast.success("Rule created");
             }
             closeEditor();
@@ -103,7 +121,9 @@ export default function RuleEditor({ hubId, links }: RuleEditorProps) {
         if (!confirm("Delete this rule?")) return;
         try {
             await api.delete(`/hubs/${hubId}/rules/${ruleId}`);
-            setRules(rules.filter(r => r.id !== ruleId));
+            const updatedRules = rules.filter(r => r.id !== ruleId);
+            setRules(updatedRules);
+            onRulesChange?.(updatedRules);
             if (viewingRule?.id === ruleId) setViewingRule(null);
             toast.success("Rule deleted");
         } catch (error) {

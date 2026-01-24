@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: true, // Allow any origin in dev (for remote access)
     credentials: true
 }));
 app.use(morgan('dev'));
@@ -45,6 +45,6 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
