@@ -34,7 +34,12 @@ export default function RegisterPage() {
             });
             toast.success('Account created successfully!');
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Registration failed');
+            console.error('Registration Error Details:', error);
+            if (error.response) {
+                console.error('Response Data:', error.response.data);
+                console.error('Response Status:', error.response.status);
+            }
+            toast.error(error.response?.data?.message || 'Registration failed. Check console for details.');
         }
     };
 
