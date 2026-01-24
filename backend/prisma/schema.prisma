@@ -70,6 +70,7 @@ model Link {
   position   Int // For ordering
   isActive   Boolean  @default(true)
   clickCount Int      @default(0)
+  deletedAt  DateTime? // Soft delete support
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

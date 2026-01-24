@@ -24,10 +24,21 @@ export const getMyHubs = async (req: AuthRequest, res: Response) => {
             where: { userId: req.user.id },
             orderBy: { createdAt: 'desc' },
             include: {
-                _count: { select: { links: true, visits: true } }
+                links: { where: { deletedAt: null } },
+                visits: true
             }
         });
-        res.json({ hubs });
+
+        const hubsWithCount = (hubs as any[]).map(hub => ({
+            ...hub,
+            _count: {
+                links: hub.links.length,
+                visits: hub.visits.length
+            },
+            links: undefined // Optional: don't send full links list to light dashboard
+        }));
+
+        res.json({ hubs: hubsWithCount });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
@@ -68,7 +79,12 @@ export const getHubById = async (req: AuthRequest, res: Response) => {
     try {
         const hub = await prisma.linkHub.findUnique({
             where: { id: req.params.id },
-            include: { links: { orderBy: { position: 'asc' } } }
+            include: {
+                links: {
+                    where: { deletedAt: null },
+                    orderBy: { position: 'asc' }
+                }
+            }
         });
 
         if (!hub) return res.status(404).json({ message: 'Hub not found' });
@@ -123,7 +139,10 @@ export const exportHubData = async (req: AuthRequest, res: Response) => {
         const hub = await prisma.linkHub.findUnique({
             where: { id: hubId },
             include: {
-                links: { orderBy: { position: 'asc' } },
+                links: {
+                    where: { deletedAt: null },
+                    orderBy: { position: 'asc' }
+                },
                 rules: true
             }
         });

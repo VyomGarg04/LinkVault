@@ -28,7 +28,10 @@ export const getHubLinks = async (req: AuthRequest, res: Response) => {
         if (hub.userId !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
 
         const links = await prisma.link.findMany({
-            where: { hubId: req.params.hubId },
+            where: {
+                hubId: req.params.hubId,
+                deletedAt: null
+            },
             orderBy: { position: 'asc' }
         });
 
@@ -107,7 +110,10 @@ export const deleteLink = async (req: AuthRequest, res: Response) => {
         if (!link) return res.status(404).json({ message: 'Link not found' });
         if (link.hub.userId !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
 
-        await prisma.link.delete({ where: { id: req.params.id } });
+        await prisma.link.update({
+            where: { id: req.params.id },
+            data: { deletedAt: new Date() }
+        });
 
         res.json({ message: 'Link deleted successfully' });
     } catch (error: any) {
