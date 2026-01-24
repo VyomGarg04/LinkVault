@@ -1,6 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
+:root {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
 
@@ -21,9 +23,6 @@
   --color-error: var(--color-error);
   --color-warning: var(--color-warning);
   --color-info: var(--color-info);
-}
-
-:root {
   /* Core Colors */
   --bg-primary: #000000;
   --bg-secondary: #0A0A0A;
