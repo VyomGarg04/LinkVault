@@ -1,6 +1,12 @@
 import axios from 'axios';
 
+// Use same-origin /api path - Next.js rewrites will proxy to backend
 const getBaseUrl = () => {
+    // In browser, use relative path (same origin, no CORS)
+    if (typeof window !== 'undefined') {
+        return '/api';
+    }
+    // On server, use the full backend URL
     const envUrl = process.env.NEXT_PUBLIC_API_URL;
     if (envUrl) {
         return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
