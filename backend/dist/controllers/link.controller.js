@@ -38,7 +38,10 @@ const getHubLinks = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (hub.userId !== req.user.id)
             return res.status(403).json({ message: 'Not authorized' });
         const links = yield db_1.default.link.findMany({
-            where: { hubId: req.params.hubId },
+            where: {
+                hubId: req.params.hubId,
+                deletedAt: null
+            },
             orderBy: { position: 'asc' }
         });
         res.json({ links });
@@ -109,7 +112,10 @@ const deleteLink = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(404).json({ message: 'Link not found' });
         if (link.hub.userId !== req.user.id)
             return res.status(403).json({ message: 'Not authorized' });
-        yield db_1.default.link.delete({ where: { id: req.params.id } });
+        yield db_1.default.link.update({
+            where: { id: req.params.id },
+            data: { deletedAt: new Date() }
+        });
         res.json({ message: 'Link deleted successfully' });
     }
     catch (error) {

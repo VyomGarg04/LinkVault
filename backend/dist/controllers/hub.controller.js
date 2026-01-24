@@ -34,10 +34,16 @@ const getMyHubs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: { userId: req.user.id },
             orderBy: { createdAt: 'desc' },
             include: {
-                _count: { select: { links: true, visits: true } }
+                links: { where: { deletedAt: null } },
+                visits: true
             }
         });
-        res.json({ hubs });
+        const hubsWithCount = hubs.map(hub => (Object.assign(Object.assign({}, hub), { _count: {
+                links: hub.links.length,
+                visits: hub.visits.length
+            }, links: undefined // Optional: don't send full links list to light dashboard
+         })));
+        res.json({ hubs: hubsWithCount });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -72,7 +78,12 @@ const getHubById = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const hub = yield db_1.default.linkHub.findUnique({
             where: { id: req.params.id },
-            include: { links: { orderBy: { position: 'asc' } } }
+            include: {
+                links: {
+                    where: { deletedAt: null },
+                    orderBy: { position: 'asc' }
+                }
+            }
         });
         if (!hub)
             return res.status(404).json({ message: 'Hub not found' });
@@ -128,7 +139,10 @@ const exportHubData = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const hub = yield db_1.default.linkHub.findUnique({
             where: { id: hubId },
             include: {
-                links: { orderBy: { position: 'asc' } },
+                links: {
+                    where: { deletedAt: null },
+                    orderBy: { position: 'asc' }
+                },
                 rules: true
             }
         });
