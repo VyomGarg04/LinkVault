@@ -66,6 +66,7 @@ model Link {
   title      String
   url        String
   icon       String?
+  style      String?  // JSON for custom link styles (bgColor, textColor, animation)
   position   Int // For ordering
   isActive   Boolean  @default(true)
   clickCount Int      @default(0)

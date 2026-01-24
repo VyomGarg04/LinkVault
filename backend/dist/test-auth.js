@@ -69,3 +69,4 @@ function testAuth() {
     });
 }
 testAuth();
+//# sourceMappingURL=test-auth.js.map

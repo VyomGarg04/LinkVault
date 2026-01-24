@@ -115,3 +115,31 @@ export const deleteHub = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// GET /api/hubs/:id/export
+export const exportHubData = async (req: AuthRequest, res: Response) => {
+    try {
+        const hubId = req.params.id;
+        const hub = await prisma.linkHub.findUnique({
+            where: { id: hubId },
+            include: {
+                links: { orderBy: { position: 'asc' } },
+                rules: true
+            }
+        });
+
+        if (!hub) return res.status(404).json({ message: 'Hub not found' });
+        if (hub.userId !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+
+        const exportData = {
+            ...hub,
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        res.json(exportData);
+    } catch (error: any) {
+        console.error("Hub Export Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};

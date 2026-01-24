@@ -27,3 +27,4 @@ function main() {
     });
 }
 main();
+//# sourceMappingURL=test-db-connection.js.map

@@ -7,12 +7,14 @@ const createLinkSchema = z.object({
     title: z.string().min(1),
     url: z.string().url(),
     icon: z.string().optional(),
+    style: z.string().optional(), // JSON
 });
 
 const updateLinkSchema = z.object({
     title: z.string().min(1).optional(),
     url: z.string().url().optional(),
     icon: z.string().optional(),
+    style: z.string().optional(),
     isActive: z.boolean().optional(),
     position: z.number().optional(),
 });

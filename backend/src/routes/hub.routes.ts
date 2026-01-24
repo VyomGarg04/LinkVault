@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMyHubs, createHub, getHubById, updateHub, deleteHub } from '../controllers/hub.controller';
+import { getMyHubs, createHub, getHubById, updateHub, deleteHub, exportHubData } from '../controllers/hub.controller';
 import { protect } from '../middleware/auth.middleware';
 
 import { createRule, getRules, updateRule, deleteRule } from '../controllers/rule.controller';
@@ -14,6 +14,7 @@ router.post('/', createHub as any);
 router.get('/:id', getHubById as any);
 router.put('/:id', updateHub as any);
 router.delete('/:id', deleteHub as any);
+router.get('/:id/export', exportHubData as any);
 
 // Rule Routes
 router.post('/:id/rules', createRule as any);

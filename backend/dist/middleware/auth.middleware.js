@@ -27,7 +27,7 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         const decoded = (0, auth_utils_1.verifyToken)(token);
         const user = yield db_1.default.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true, email: true, name: true, avatar: true }
+            select: { id: true, email: true, name: true, avatar: true, username: true }
         });
         if (!user) {
             return res.status(401).json({ message: 'User not found' });
@@ -40,3 +40,4 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.protect = protect;
+//# sourceMappingURL=auth.middleware.js.map
