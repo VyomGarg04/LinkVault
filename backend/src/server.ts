@@ -20,8 +20,14 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-    origin: true, // Allow any origin in dev (for remote access)
-    credentials: true
+    origin: [
+        'http://localhost:3000',
+        'https://link-vault-orcin.vercel.app',
+        process.env.FRONTEND_URL || ''
+    ].filter(Boolean),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
