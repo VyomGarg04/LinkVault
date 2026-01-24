@@ -28,17 +28,7 @@ export const getMyHubs = async (req: AuthRequest, res: Response) => {
                 visits: true
             }
         });
-
-        const hubsWithCount = (hubs as any[]).map(hub => ({
-            ...hub,
-            _count: {
-                links: hub.links.length,
-                visits: hub.visits.length
-            },
-            links: undefined // Optional: don't send full links list to light dashboard
-        }));
-
-        res.json({ hubs: hubsWithCount });
+        res.json({ hubs });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
