@@ -32,7 +32,7 @@ export function SortableLinkItem({
     };
 
     const linkStyle = link.style ? JSON.parse(link.style) : {};
-    const customClass = linkStyle.highlight ? 'ring-2 ring-green-500 bg-green-900/20' : '';
+    const customClass = linkStyle.highlight ? 'ring-2 ring-green-500' : '';
 
     return (
         <div

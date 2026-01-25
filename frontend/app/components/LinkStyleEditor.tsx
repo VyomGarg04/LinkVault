@@ -36,7 +36,7 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
 
             {/* Highlight Toggle */}
             <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Highlight Link</span>
+                <span className="text-xs text-slate-500 uppercase font-bold">Highlight Link</span>
                 <button
                     type="button"
                     onClick={() => updateStyle('highlight', !style.highlight)}
@@ -55,11 +55,14 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                             key={anim}
                             type="button"
                             onClick={() => updateStyle('animation', anim === 'none' ? undefined : anim)}
-                            className={`px-2 py-1 text-xs rounded-md border transition-all ${style.animation === anim || (!style.animation && anim === 'none')
-                                ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400'
-                                : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                            className={`px-2 py-1 text-xs rounded-md border transition-all ${(style.animation === anim) && (anim === 'float' ? 'animate-float' :
+                                    anim === 'pulse' ? 'animate-pulse' :
+                                        anim === 'glow' ? 'animate-glow' : '')
+                                } ${style.animation === anim || (!style.animation && anim === 'none')
+                                    ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400'
+                                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                         >
-                            {anim}
+                            {anim.charAt(0).toUpperCase() + anim.slice(1)}
                         </button>
                     ))}
                 </div>
@@ -74,6 +77,7 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                         Preset Style
                     </span>
                     <select
+                        value={style.preset || ''}
                         onChange={(e) => {
                             const val = e.target.value;
                             if (val === 'default') {
@@ -91,7 +95,7 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                                     love: { highlight: true, bgColor: '#fce7f3', textColor: '#db2777' },
                                     cyber: { highlight: true, bgColor: '#000000', textColor: '#06b6d4' },
                                 };
-                                const newStyle = combos[val] || {};
+                                const newStyle = { ...combos[val], preset: val } || { preset: val };
                                 setStyle(newStyle);
                                 onChange(JSON.stringify(newStyle));
                             }

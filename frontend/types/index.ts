@@ -41,6 +41,7 @@ export interface LinkStyle {
     textColor?: string; // Override
     fontFamily?: string; // Override
     animation?: 'none' | 'pulse' | 'float' | 'glow';
+    preset?: string;
 }
 
 export interface Link {

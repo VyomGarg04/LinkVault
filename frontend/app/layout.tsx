@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${lato.variable} ${oswald.variable} ${montserrat.variable} font-sans bg-slate-950 text-white min-h-screen relative`}>
+      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${lato.variable} ${oswald.variable} ${montserrat.variable} font-sans min-h-screen relative`}>
         <AuthProvider>
           <InteractiveBackground />
           {children}

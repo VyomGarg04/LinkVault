@@ -681,9 +681,10 @@ export default function HubEditorPage() {
                                                     if (linkStyleString) customStyle = JSON.parse(linkStyleString);
                                                 } catch (e) { }
 
-                                                const linkBg = customStyle.highlight ? (customStyle.bgColor || '#22c55e') : currentTheme.buttonBgColor;
-                                                const linkText = customStyle.highlight ? (customStyle.textColor || '#ffffff') : currentTheme.buttonTextColor;
+                                                const linkBg = customStyle.bgColor || currentTheme.buttonBgColor;
+                                                const linkText = customStyle.textColor || currentTheme.buttonTextColor;
                                                 const animationClass = customStyle.animation ? `animate-${customStyle.animation}` : '';
+                                                const highlightClass = customStyle.highlight ? 'ring-2 ring-offset-2 ring-green-500 ring-offset-black/50' : 'border border-white/5';
 
                                                 // Font Mapping
                                                 const fontMap: Record<string, string> = {
@@ -699,7 +700,7 @@ export default function HubEditorPage() {
                                                 return (
                                                     <div
                                                         key={link.id}
-                                                        className={`glass-liquid w-full p-4 rounded-xl text-center text-sm font-medium hover:scale-[1.02] transition-all cursor-pointer flex items-center justify-center relative shadow-md ${animationClass}`}
+                                                        className={`glass-liquid w-full p-4 rounded-xl text-center text-sm font-medium hover:scale-[1.02] transition-all cursor-pointer flex items-center justify-center relative shadow-md ${animationClass} ${highlightClass}`}
                                                         style={{
                                                             backgroundColor: linkBg,
                                                             color: linkText,

@@ -32,7 +32,7 @@ export default function InteractiveBackground() {
     return (
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
             {/* Ambient Lighting Layer */}
-            <div className="absolute inset-0 bg-[#020617] opacity-90" />
+            <div className="absolute inset-0 bg-[#050505] opacity-90" />
 
             {/* Liquid Blob Container */}
             <div ref={blobsRef} className="absolute inset-0 opacity-40 transition-transform duration-[2000ms] ease-out will-change-transform">
