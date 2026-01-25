@@ -56,8 +56,8 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                             type="button"
                             onClick={() => updateStyle('animation', anim === 'none' ? undefined : anim)}
                             className={`px-2 py-1 text-xs rounded-md border transition-all ${(style.animation === anim) && (anim === 'float' ? 'animate-float' :
-                                    anim === 'pulse' ? 'animate-pulse' :
-                                        anim === 'glow' ? 'animate-glow' : '')
+                                anim === 'pulse' ? 'animate-pulse' :
+                                    anim === 'glow' ? 'animate-glow' : '')
                                 } ${style.animation === anim || (!style.animation && anim === 'none')
                                     ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400'
                                     : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
@@ -95,7 +95,8 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                                     love: { highlight: true, bgColor: '#fce7f3', textColor: '#db2777' },
                                     cyber: { highlight: true, bgColor: '#000000', textColor: '#06b6d4' },
                                 };
-                                const newStyle = { ...combos[val], preset: val } || { preset: val };
+                                const baseStyle = combos[val] || {};
+                                const newStyle = { ...baseStyle, preset: val };
                                 setStyle(newStyle);
                                 onChange(JSON.stringify(newStyle));
                             }
