@@ -5,11 +5,11 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "npx prisma migrate dev",
     "generate": "npx prisma generate",
-    "vercel-build": "npx prisma generate && tsc --outDir ./"
+    "postinstall": "echo 'Skipped on Vercel'"
   },
   "keywords": [],
   "author": "",
