@@ -29,19 +29,12 @@ export default function PublicHubPage() {
         if (params.slug) {
             const fetchHub = async () => {
                 try {
-                    // Call new endpoint structure
-                    const { data } = await api.get(`/public/${params.username}/${params.slug}`);
+                    // Call new endpoint structure - Disable credentials to avoid CORS/Incognito issues
+                    const { data } = await api.get(`/public/${params.username}/${params.slug}`, {
+                        withCredentials: false
+                    });
                     setHub(data.hub);
-                } catch (err: any) {
-                    console.error("DEBUG: Failed to fetch hub", err);
-                    if (err.response) {
-                        console.error("DEBUG: Response Status:", err.response.status);
-                        console.error("DEBUG: Response Data:", err.response.data);
-                    } else if (err.request) {
-                        console.error("DEBUG: No response received (Network/CORS?)", err.request);
-                    } else {
-                        console.error("DEBUG: Request setup error", err.message);
-                    }
+                } catch (err) {
                     setError(true);
                 } finally {
                     setLoading(false);
@@ -100,7 +93,6 @@ export default function PublicHubPage() {
             style={{ backgroundColor: theme.bgColor, color: theme.textColor, fontFamily: theme.fontFamily }}
         >
             {/* Premium Background Elements (Visible if theme bg is transparent/dark) */}
-            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay pointer-events-none -z-10" />
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
 
