@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import axios from 'axios';
 import api from '@/lib/api';
 import { LinkHub } from '@/types';
 import { ThemeConfig } from '@/types';
@@ -16,6 +17,15 @@ interface PublicHub extends LinkHub {
     links: any[];
 }
 
+// Get API base URL for public requests (no credentials needed)
+const getPublicApiUrl = () => {
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl) {
+        return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+    }
+    return 'http://localhost:3001/api';
+};
+
 export default function PublicHubPage() {
     const params = useParams();
     const [hub, setHub] = useState<PublicHub | null>(null);
@@ -26,7 +36,9 @@ export default function PublicHubPage() {
         if (params.slug) {
             const fetchHub = async () => {
                 try {
-                    const { data } = await api.get(`/public/${params.username}/${params.slug}`);
+                    // Use direct axios WITHOUT credentials for public endpoint
+                    const baseUrl = getPublicApiUrl();
+                    const { data } = await axios.get(`${baseUrl}/public/${params.username}/${params.slug}`);
                     setHub(data.hub);
                 } catch (err: any) {
                     console.error("DEBUG: Failed to fetch hub", err);
