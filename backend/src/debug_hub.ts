@@ -4,7 +4,7 @@ import prisma from './config/db';
 async function debugHub(slug: string) {
     console.log(`Debugging Hub with slug: ${slug}`);
 
-    const hub = await prisma.linkHub.findUnique({
+    const hub = await prisma.linkHub.findFirst({
         where: { slug },
         include: {
             user: true,
