@@ -17,15 +17,6 @@ interface PublicHub extends LinkHub {
     links: any[];
 }
 
-// Get API base URL for public requests (no credentials needed)
-const getPublicApiUrl = () => {
-    const envUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (envUrl) {
-        return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
-    }
-    return 'http://localhost:3001/api';
-};
-
 export default function PublicHubPage() {
     const params = useParams();
     const [hub, setHub] = useState<PublicHub | null>(null);
@@ -36,20 +27,11 @@ export default function PublicHubPage() {
         if (params.slug) {
             const fetchHub = async () => {
                 try {
-                    // Use direct axios WITHOUT credentials for public endpoint
-                    const baseUrl = getPublicApiUrl();
-                    const { data } = await axios.get(`${baseUrl}/public/${params.username}/${params.slug}`);
+                    // Use RELATIVE path - Next.js rewrites will proxy to backend (NO CORS!)
+                    const { data } = await axios.get(`/api/public/${params.username}/${params.slug}`);
                     setHub(data.hub);
                 } catch (err: any) {
                     console.error("DEBUG: Failed to fetch hub", err);
-                    if (err.response) {
-                        console.error("DEBUG: Response Status:", err.response.status);
-                        console.error("DEBUG: Response Data:", err.response.data);
-                    } else if (err.request) {
-                        console.error("DEBUG: No response received (Network/CORS?)", err.request);
-                    } else {
-                        console.error("DEBUG: Request setup error", err.message);
-                    }
                     setError(true);
                 } finally {
                     setLoading(false);
@@ -61,7 +43,8 @@ export default function PublicHubPage() {
 
     const handleLinkClick = async (linkId: string, url: string) => {
         try {
-            await api.post(`/public/links/${linkId}/click`);
+            // Also use relative path for click tracking
+            await axios.post(`/api/public/links/${linkId}/click`);
         } catch (e) {
             console.error('Failed to track click', e);
         }
