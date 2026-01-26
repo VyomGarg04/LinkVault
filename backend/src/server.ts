@@ -39,11 +39,13 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Routes
+// Routes  
+// IMPORTANT: publicRoutes must come BEFORE linkRoutes because linkRoutes is mounted  
+// at /api with auth middleware that would intercept /api/public/* requests
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicRoutes);  // Must be before other /api routes
 app.use('/api/hubs', hubRoutes);
 app.use('/api', linkRoutes);
-app.use('/api/public', publicRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', userRoutes);
 
