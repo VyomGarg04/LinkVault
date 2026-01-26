@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Roboto, Playfair_Display, Lato, Oswald, Montserrat } from 'next/font/google';
+import { Inter, Roboto, Playfair_Display, Lato, Oswald, Montserrat, Lobster, Courier_Prime, Bangers } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/context/AuthContext';
 import './globals.css';
@@ -11,6 +11,9 @@ const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfa
 const lato = Lato({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-lato' });
 const oswald = Oswald({ subsets: ['latin'], variable: '--font-oswald' });
 const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat' });
+const lobster = Lobster({ weight: ['400'], subsets: ['latin'], variable: '--font-lobster' });
+const courier = Courier_Prime({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-courier' });
+const bangers = Bangers({ weight: ['400'], subsets: ['latin'], variable: '--font-bangers' });
 
 export const metadata: Metadata = {
   title: 'Link Vault - Smart Link Hub Generator',
@@ -24,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${lato.variable} ${oswald.variable} ${montserrat.variable} font-sans min-h-screen relative`}>
+      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${lato.variable} ${oswald.variable} ${montserrat.variable} ${lobster.variable} ${courier.variable} ${bangers.variable} font-sans min-h-screen relative`}>
         <AuthProvider>
           <InteractiveBackground />
           {children}

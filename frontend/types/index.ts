@@ -33,6 +33,8 @@ export interface ThemeConfig {
     buttonTextColor: string;
     fontFamily: string; // 'inter', 'roboto', 'playfair', 'mono'
     avatar?: string;
+    animation?: 'none' | 'pulse' | 'glow' | 'beam' | 'neon-glow' | 'heartbeat' | 'shine' | 'glitch' | 'breathe';
+    preset?: string;
 }
 
 export interface LinkStyle {
@@ -40,7 +42,7 @@ export interface LinkStyle {
     bgColor?: string; // Override
     textColor?: string; // Override
     fontFamily?: string; // Override
-    animation?: 'none' | 'pulse' | 'float' | 'glow';
+    animation?: 'none' | 'pulse' | 'glow' | 'beam' | 'neon-glow' | 'heartbeat' | 'shine' | 'glitch' | 'breathe';
     preset?: string;
 }
 

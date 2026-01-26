@@ -29,6 +29,7 @@ export default function AnalyticsPage() {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!params.id) return;
             setLoading(true);
             try {
                 const res = await api.get(`/analytics/${params.id}?days=${range}&includeDeleted=${includeDeleted}`);

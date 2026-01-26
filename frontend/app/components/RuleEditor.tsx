@@ -293,7 +293,7 @@ export default function RuleEditor({ hubId, links, onRulesChange, onDraftChange 
                             )}
                             {newRule.conditions?.map((cond, idx) => (
                                 <div key={idx} className="flex items-center gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800 hover:border-slate-700 transition-all group">
-                                    <div className="px-3 py-1.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold font-mono tracking-wide uppercase whitespace-nowrap">
+                                    <div className={`px-3 py-1.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold font-mono tracking-wide uppercase whitespace-nowrap ${cond.type === 'TIME_RANGE' ? 'mt-5' : ''}`}>
                                         {cond.type.replace('_', ' ')}
                                     </div>
 

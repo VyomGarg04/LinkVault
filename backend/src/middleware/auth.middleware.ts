@@ -14,6 +14,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     }
 
     if (!token) {
+        console.log('[AuthMiddleware] No token found in cookies. Cookies:', req.cookies);
         return res.status(401).json({ message: 'Not authorized, no token' });
     }
 
@@ -25,12 +26,14 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         });
 
         if (!user) {
+            console.log('[AuthMiddleware] User not found for ID:', decoded.userId);
             return res.status(401).json({ message: 'User not found' });
         }
 
         req.user = user;
         next();
     } catch (error) {
+        console.error('[AuthMiddleware] Token verification failed:', error);
         res.status(401).json({ message: 'Not authorized, token failed' });
     }
 };

@@ -18,14 +18,32 @@ export default function LinkCard({ link, theme, onClick }: LinkCardProps) {
     } catch (e) { }
 
     // Merge styles: Custom takes precedence over Theme
+    // Font Mapping
+    const fontMap: Record<string, string> = {
+        inter: 'var(--font-inter)',
+        roboto: 'var(--font-roboto)',
+        playfair: 'var(--font-playfair)',
+        lato: 'var(--font-lato)',
+        oswald: 'var(--font-oswald)',
+        montserrat: 'var(--font-montserrat)',
+        lobster: 'var(--font-lobster)',
+        courier: 'var(--font-courier)',
+        bangers: 'var(--font-bangers)',
+    };
+
+    // Merge styles: Custom takes precedence over Theme
     const bgColor = customStyle.bgColor || theme.buttonBgColor;
     const textColor = customStyle.textColor || theme.buttonTextColor;
-    const fontFamily = customStyle.fontFamily || theme.fontFamily;
+    const rawFont = customStyle.fontFamily || theme.fontFamily;
+    const fontFamily = fontMap[rawFont] || rawFont;
 
     // Animation Class
     const animationClass = customStyle.animation
         ? `animate-${customStyle.animation}`
         : '';
+
+    // Prevent hover:scale conflict if animation uses transform
+    const hoverClass = customStyle.animation ? '' : 'hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]';
 
     // Highlight Class (e.g. green breathing glow if highlighted)
     const highlightClass = customStyle.highlight
@@ -37,7 +55,7 @@ export default function LinkCard({ link, theme, onClick }: LinkCardProps) {
             onClick={() => onClick(link.id, link.url)}
             className={clsx(
                 'group w-full p-4 rounded-xl transition-all cursor-pointer flex items-center relative overflow-hidden shadow-md',
-                'hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]',
+                hoverClass,
                 animationClass,
                 highlightClass
             )}

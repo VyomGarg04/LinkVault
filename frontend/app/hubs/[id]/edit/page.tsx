@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -87,6 +87,8 @@ export default function HubEditorPage() {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
+    const [editFormTab, setEditFormTab] = useState<'settings' | 'styles'>('settings');
+    const [draftLinkStyle, setDraftLinkStyle] = useState<{ id: string | null, style: string | null }>({ id: null, style: null });
 
     // Form handling
     const { register, handleSubmit, reset, control, watch, formState: { errors, isSubmitting } } = useForm<LinkFormData>({
@@ -203,6 +205,7 @@ export default function HubEditorPage() {
     const onEditLink = (link: LinkItem) => {
         setEditingLink(link);
         setIsAddingLink(false);
+        setEditFormTab('settings');
         reset({
             title: link.title,
             url: link.url,
@@ -255,6 +258,20 @@ export default function HubEditorPage() {
             console.error('Failed to save theme', error);
         }
     };
+
+    const onUpdateLinkStyle = async (linkId: string, style: string) => {
+        try {
+            await api.put(`/links/${linkId}`, { style });
+            setLinks(links.map(l => l.id === linkId ? { ...l, style } : l));
+        } catch (error) {
+            console.error('Failed to update link style', error);
+            toast.error('Failed to update style');
+        }
+    };
+
+    const handleDraftUpdate = useCallback((id: string | null, style: string | null) => {
+        setDraftLinkStyle({ id, style });
+    }, []);
 
     if (loading || !hub) {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-green-500">Loading Editor...</div>
@@ -412,6 +429,7 @@ export default function HubEditorPage() {
                                     onClick={() => {
                                         setIsAddingLink(true);
                                         setEditingLink(null);
+                                        setEditFormTab('settings');
                                         reset({ title: '', url: '', icon: '' });
                                     }}
                                     className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors font-medium shadow-lg shadow-green-900/20"
@@ -427,32 +445,24 @@ export default function HubEditorPage() {
                                     <h3 className="font-semibold text-slate-300">{editingLink ? 'Edit Link' : 'New Link'}</h3>
 
                                     <div className="space-y-3">
-                                        <input
-                                            {...register('title')}
-                                            placeholder="Link Title (e.g. My Instagram)"
-                                            className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-                                        />
-                                        {errors.title && <p className="text-red-400 text-xs">{errors.title.message}</p>}
-
-                                        <input
-                                            {...register('url')}
-                                            placeholder="URL (https://...)"
-                                            className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-                                        />
-                                        {errors.url && <p className="text-red-400 text-xs">{errors.url.message}</p>}
-
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-medium text-slate-400">Custom Styles</label>
-                                            <Controller
-                                                name="style"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <LinkStyleEditor
-                                                        value={field.value || '{}'}
-                                                        onChange={field.onChange}
-                                                    />
-                                                )}
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-400">Title</label>
+                                            <input
+                                                {...register('title')}
+                                                placeholder="Link Title (e.g. My Instagram)"
+                                                className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
                                             />
+                                            {errors.title && <p className="text-red-400 text-xs">{errors.title.message}</p>}
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-400">URL</label>
+                                            <input
+                                                {...register('url')}
+                                                placeholder="URL (https://...)"
+                                                className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                                            />
+                                            {errors.url && <p className="text-red-400 text-xs">{errors.url.message}</p>}
                                         </div>
                                     </div>
                                     <div className="flex justify-end space-x-3">
@@ -516,7 +526,13 @@ export default function HubEditorPage() {
                             onRulesChange={(updatedRules) => setRules(updatedRules)} // Callback to update preview
                         />
                     ) : (
-                        <ThemeEditor theme={currentTheme} onChange={onThemeChange} />
+                        <ThemeEditor
+                            theme={currentTheme}
+                            onChange={onThemeChange}
+                            links={links}
+                            onLinkStyleChange={onUpdateLinkStyle}
+                            onDraftUpdate={handleDraftUpdate}
+                        />
                     )}
                 </div>
 
@@ -669,13 +685,22 @@ export default function HubEditorPage() {
 
                                             const visibleLinks = links.filter(l => visibleLinkIds.has(l.id));
 
+
+
+                                            // ... (rest of the file until preview loop)
+
                                             return visibleLinks.map(link => {
                                                 let customStyle: LinkStyle = {};
-                                                // Live Preview: If this link is being edited, use the watched form value
-                                                const isEditing = editingLink?.id === link.id;
-                                                // Use watched value if editing, otherwise saved value
-                                                const formStyle = isEditing ? watch('style') : null;
-                                                const linkStyleString = formStyle || link.style;
+                                                // Live Preview: If this link is being edited (Edit Form), use the watched form value
+                                                const isEditingForm = editingLink?.id === link.id;
+                                                // Live Preview: If this link is being styled (Appearance Tab), use the draft value
+                                                const isStyling = draftLinkStyle.id === link.id;
+
+                                                // Priority: Edit Form > Styling Draft > Saved Value
+                                                const formStyle = isEditingForm ? watch('style') : null;
+                                                const stylingStyle = isStyling ? draftLinkStyle.style : null;
+
+                                                const linkStyleString = formStyle || stylingStyle || link.style;
 
                                                 try {
                                                     if (linkStyleString) customStyle = JSON.parse(linkStyleString);
@@ -684,7 +709,7 @@ export default function HubEditorPage() {
                                                 const linkBg = customStyle.bgColor || currentTheme.buttonBgColor;
                                                 const linkText = customStyle.textColor || currentTheme.buttonTextColor;
                                                 const animationClass = customStyle.animation ? `animate-${customStyle.animation}` : '';
-                                                const highlightClass = customStyle.highlight ? 'ring-2 ring-offset-2 ring-green-500 ring-offset-black/50' : 'border border-white/5';
+                                                const highlightClass = customStyle.highlight ? 'ring-2 ring-offset-2 ring-[#004d28] ring-offset-black/50 shadow-[0_0_10px_rgba(0,77,40,0.5)]' : 'border border-white/5';
 
                                                 // Font Mapping
                                                 const fontMap: Record<string, string> = {
@@ -694,6 +719,9 @@ export default function HubEditorPage() {
                                                     lato: 'var(--font-lato)',
                                                     oswald: 'var(--font-oswald)',
                                                     montserrat: 'var(--font-montserrat)',
+                                                    lobster: 'var(--font-lobster)',
+                                                    courier: 'var(--font-courier)',
+                                                    bangers: 'var(--font-bangers)',
                                                 };
                                                 const linkFont = customStyle.fontFamily ? fontMap[customStyle.fontFamily] : undefined;
 
@@ -716,7 +744,7 @@ export default function HubEditorPage() {
                                                                 onError={(e) => e.currentTarget.style.display = 'none'}
                                                             />
                                                         )}
-                                                        <span className="truncate max-w-full px-4">{isEditing ? watch('title') : link.title}</span>
+                                                        <span className="truncate max-w-full px-4">{isEditingForm ? watch('title') : link.title}</span>
                                                     </div>
                                                 )
                                             })

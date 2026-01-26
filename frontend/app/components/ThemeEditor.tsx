@@ -1,11 +1,15 @@
 import { HexColorPicker } from 'react-colorful';
-import { ThemeConfig } from '@/types';
-import { Palette, Type } from 'lucide-react';
-import { useState } from 'react';
+import { ThemeConfig, LinkItem } from '@/types';
+import { Palette, Type, Wand2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import LinkStyleEditor from './LinkStyleEditor';
 
 interface ThemeEditorProps {
     theme: ThemeConfig;
     onChange: (theme: ThemeConfig) => void;
+    links?: LinkItem[];
+    onLinkStyleChange?: (id: string, style: string) => void;
+    onDraftUpdate?: (id: string | null, style: string | null) => void;
 }
 
 const FONTS = [
@@ -17,8 +21,18 @@ const FONTS = [
     { id: 'playfair', name: 'Playfair (Elegant)' },
 ];
 
-export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
+export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleChange, onDraftUpdate }: ThemeEditorProps) {
     const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
+    const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
+    const [draftStyle, setDraftStyle] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Effect to notify parent of draft changes for preview
+    useEffect(() => {
+        if (onDraftUpdate) {
+            onDraftUpdate(selectedLinkId, draftStyle);
+        }
+    }, [selectedLinkId, draftStyle, onDraftUpdate]);
 
     const handleColorChange = (key: keyof ThemeConfig, color: string) => {
         onChange({ ...theme, [key]: color });
@@ -86,6 +100,148 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
                     <ColorInput label="Text Color" propKey="textColor" />
                     <ColorInput label="Button Background" propKey="buttonBgColor" />
                     <ColorInput label="Button Text" propKey="buttonTextColor" />
+                </div>
+            </div>
+
+            {/* Global Link Styles */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200">
+                    <Palette className="w-5 h-5 text-amber-500" />
+                    <span>Global Link Styles</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
+
+                    {/* Preset */}
+                    <div className="space-y-2">
+                        <span className="text-xs text-slate-500 uppercase font-bold">Preset Style</span>
+                        <select
+                            value={theme.preset || 'default'}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === 'default') {
+                                    onChange({ ...theme, preset: undefined });
+                                } else {
+                                    const combos: any = {
+                                        gold: { buttonBgColor: '#fbfbfb', buttonTextColor: '#d97706', animation: 'beam' },
+                                        danger: { buttonBgColor: '#fee2e2', buttonTextColor: '#ef4444', animation: 'pulse' },
+                                        royal: { buttonBgColor: '#1e1b4b', buttonTextColor: '#c7d2fe', animation: 'shine' },
+                                        forest: { buttonBgColor: '#ecfccb', buttonTextColor: '#3f6212', animation: 'breathe' },
+                                        night: { buttonBgColor: '#0f172a', buttonTextColor: '#f8fafc', animation: 'glow' },
+                                        neon: { buttonBgColor: '#171717', buttonTextColor: '#a3e635', animation: 'neon-glow' },
+                                        ocean: { buttonBgColor: '#0c4a6e', buttonTextColor: '#e0f2fe', animation: 'shine' },
+                                        love: { buttonBgColor: '#fce7f3', buttonTextColor: '#db2777', animation: 'heartbeat' },
+                                        cyber: { buttonBgColor: '#09090b', buttonTextColor: '#00ffff', animation: 'beam' },
+                                    };
+                                    const baseStyle = combos[val] || {};
+                                    onChange({ ...theme, ...baseStyle, preset: val });
+                                }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                            <option value="default">Default</option>
+                            <option value="gold">🟡 Gold</option>
+                            <option value="danger">🔴 Danger</option>
+                            <option value="royal">👑 Royal</option>
+                            <option value="forest">🌲 Forest</option>
+                            <option value="night">🌑 Night</option>
+                            <option value="neon">⚡ Neon</option>
+                            <option value="ocean">🌊 Ocean</option>
+                            <option value="love">💖 Love</option>
+                            <option value="cyber">🤖 Cyber</option>
+                        </select>
+                    </div>
+
+                    {/* Animation */}
+                    <div className="space-y-2">
+                        <span className="text-xs text-slate-500 uppercase font-bold">Animation</span>
+                        <select
+                            value={theme.animation || 'none'}
+                            onChange={(e) => onChange({ ...theme, animation: e.target.value === 'none' ? undefined : e.target.value as any })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                            <option value="none">None</option>
+                            <option value="glitch">Cyber Glitch</option>
+                            <option value="breathe">Forest Breathe</option>
+                            <option value="pulse">Soft Pulse</option>
+                            <option value="beam">Beam</option>
+                            <option value="neon-glow">Neon Glow</option>
+                            <option value="heartbeat">Heartbeat</option>
+                            <option value="shine">Shine</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Individual Link Styles (Overrides) */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200">
+                    <Wand2 className="w-5 h-5 text-pink-500" />
+                    <span>Individual Link Overrides</span>
+                </h3>
+                <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div className="space-y-2">
+                        <span className="text-xs text-slate-500 uppercase font-bold">Select a Link to Customize</span>
+                        <select
+                            value={selectedLinkId || ''}
+                            onChange={(e) => {
+                                setSelectedLinkId(e.target.value || null);
+                                setDraftStyle(null);
+                            }}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                            <option value="">-- Choose a link to override --</option>
+                            {links.map(link => (
+                                <option key={link.id} value={link.id}>
+                                    🔗 {link.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {selectedLinkId && onLinkStyleChange && (() => {
+                        const link = links.find(l => l.id === selectedLinkId);
+                        if (!link) return null;
+
+                        const currentStyle = draftStyle || link.style || '{}';
+                        const hasChanges = draftStyle && draftStyle !== link.style;
+
+                        return (
+                            <div className="animate-in fade-in slide-in-from-top-2 border-t border-slate-800 pt-4 space-y-4">
+                                <LinkStyleEditor
+                                    value={currentStyle}
+                                    onChange={(val) => setDraftStyle(val)}
+                                />
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={async () => {
+                                            if (draftStyle) {
+                                                setIsSaving(true);
+                                                try {
+                                                    await onLinkStyleChange(link.id, draftStyle);
+                                                } finally {
+                                                    setIsSaving(false);
+                                                }
+                                            }
+                                        }}
+                                        disabled={!hasChanges || isSaving}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${hasChanges && !isSaving
+                                            ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                                            : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <span className="w-4 h-4 border-2 border-slate-500 border-t-white rounded-full animate-spin"></span>
+                                                <span>Saving...</span>
+                                            </>
+                                        ) : (
+                                            hasChanges ? 'Save Changes' : 'Saved'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
 
