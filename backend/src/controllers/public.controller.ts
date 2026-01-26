@@ -97,11 +97,16 @@ export const getPublicHub = async (req: Request, res: Response) => {
 
         // --- RULE EVALUATION ---
         const userAgent = req.headers['user-agent'] || '';
-        const ip = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || '127.0.0.1';
-        // Fix for localhost/::1
-        const cleanIp = (Array.isArray(ip) ? ip[0] : ip).replace(/^::ffff:/, '');
-        const geo = geoip.lookup(cleanIp === '::1' ? '127.0.0.1' : cleanIp);
-        const country = geo ? geo.country : null;
+        const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || '127.0.0.1';
+
+        // Handle comma-separated IPs (x-forwarded-for: client, proxy1, proxy2)
+        const ipList = Array.isArray(rawIp) ? rawIp : rawIp.split(',');
+        let cleanIp = ipList[0].trim().replace(/^::ffff:/, '');
+        if (cleanIp === '::1') cleanIp = '127.0.0.1';
+
+        const geo = geoip.lookup(cleanIp);
+        // Fallback for localhost development -> Default to 'IN' (India) for testing
+        const country = geo ? geo.country : (cleanIp === '127.0.0.1' ? 'IN' : null);
 
         const context = { userAgent, country, ip: cleanIp };
         console.log(`[PublicHub] Eval Context: IP=${cleanIp} Country=${country} UA=${userAgent.substring(0, 20)}...`);

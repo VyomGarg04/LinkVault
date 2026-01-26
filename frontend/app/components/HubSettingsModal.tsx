@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
@@ -16,15 +16,24 @@ interface HubSettingsModalProps {
 export default function HubSettingsModal({ isOpen, onClose, hub, onUpdate }: HubSettingsModalProps) {
     const [title, setTitle] = useState(hub?.title || '');
     const [slug, setSlug] = useState(hub?.slug || '');
+    const [description, setDescription] = useState(hub?.description || '');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        if (hub) {
+            setTitle(hub.title);
+            setSlug(hub.slug);
+            setDescription(hub.description || '');
+        }
+    }, [hub]);
 
     if (!isOpen || !hub) return null;
 
     const handleUpdate = async () => {
         setLoading(true);
         try {
-            const { data } = await api.put(`/hubs/${hub.id}`, { title, slug });
+            const { data } = await api.put(`/hubs/${hub.id}`, { title, slug, description });
             onUpdate(data.hub);
             toast.success("Hub updated");
             onClose();
@@ -75,6 +84,16 @@ export default function HubSettingsModal({ isOpen, onClose, hub, onUpdate }: Hub
                                 className="w-full bg-slate-950 border border-slate-700 rounded-r-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                             />
                         </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300">Description</label>
+                        <textarea
+                            value={description || ''}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                            placeholder="Tell visitors what this hub is about..."
+                        />
                     </div>
                 </div>
 

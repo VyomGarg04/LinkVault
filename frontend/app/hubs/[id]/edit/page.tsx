@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -50,15 +50,19 @@ const linkSchema = z.object({
 type LinkFormData = z.infer<typeof linkSchema>;
 
 const AVATAR_OPTIONS = [
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-    'https://api.dicebear.com/7.x/bottts/svg?seed=Spotty',
-    'https://api.dicebear.com/7.x/lorelei/svg?seed=Sasha',
-    'https://api.dicebear.com/7.x/notionists/svg?seed=Bear',
-    'https://api.dicebear.com/7.x/micah/svg?seed=Denny',
-    'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Smile',
-    'https://api.dicebear.com/7.x/identicon/svg?seed=Tech',
-    'https://api.dicebear.com/7.x/shapes/svg?seed=Abstract',
+    'https://api.dicebear.com/7.x/micah/svg?seed=Alex&backgroundColor=ffdfbf',
+    'https://api.dicebear.com/7.x/micah/svg?seed=Felix=sad&backgroundColor=b6e3f4',
+    'https://api.dicebear.com/7.x/lorelei/svg?seed=Sasha=smile&backgroundColor=c0aede',
+    'https://api.dicebear.com/7.x/lorelei/svg?seed=Kyle=smile&backgroundColor=b6e3f4',
+    'https://api.dicebear.com/7.x/lorelei/svg?seed=Maria=sad&backgroundColor=ffdfbf',
+    'https://api.dicebear.com/7.x/bottts/svg?seed=Vault&backgroundColor=0d1117&primaryColor=9a7cf6',
+    'https://api.dicebear.com/7.x/bottts/svg?seed=Charlie&backgroundColor=e6e6e6',
+    'https://api.dicebear.com/7.x/bottts/svg?seed=Cypher&backgroundColor=0b2229&primaryColor=16b6d4',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix=excite&backgroundColor=b6a3f4',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&mouth=smile&backgroundColor=ffdfbf',
 ];
+
+
 
 export default function HubEditorPage() {
     const { user, isLoading: authLoading } = useAuth();
@@ -89,6 +93,9 @@ export default function HubEditorPage() {
     const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
     const [editFormTab, setEditFormTab] = useState<'settings' | 'styles'>('settings');
     const [draftLinkStyle, setDraftLinkStyle] = useState<{ id: string | null, style: string | null }>({ id: null, style: null });
+
+    const themeSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+    const linkStyleSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // Form handling
     const { register, handleSubmit, reset, control, watch, formState: { errors, isSubmitting } } = useForm<LinkFormData>({
@@ -246,25 +253,34 @@ export default function HubEditorPage() {
         }
     }
 
-    const onThemeChange = async (newTheme: ThemeConfig) => {
+    const onThemeChange = (newTheme: ThemeConfig) => {
         setCurrentTheme(newTheme);
-        // Debounce saving if needed, but for now specific save is okay or auto-save
-        // Let's autosave on change for premium feel
-        try {
-            await api.put(`/hubs/${params.id}`, { theme: JSON.stringify(newTheme) });
-        } catch (error) {
-            console.error('Failed to save theme', error);
-        }
+
+        if (themeSaveTimeout.current) clearTimeout(themeSaveTimeout.current);
+
+        themeSaveTimeout.current = setTimeout(async () => {
+            try {
+                await api.put(`/hubs/${params.id}`, { theme: JSON.stringify(newTheme) });
+            } catch (error) {
+                console.error('Failed to save theme', error);
+            }
+        }, 500);
     };
 
-    const onUpdateLinkStyle = async (linkId: string, style: string) => {
-        try {
-            await api.put(`/links/${linkId}`, { style });
-            setLinks(links.map(l => l.id === linkId ? { ...l, style } : l));
-        } catch (error) {
-            console.error('Failed to update link style', error);
-            toast.error('Failed to update style');
-        }
+    const onUpdateLinkStyle = (linkId: string, style: string) => {
+        // Optimistic update
+        setLinks(prev => prev.map(l => l.id === linkId ? { ...l, style } : l));
+        
+        if (linkStyleSaveTimeout.current) clearTimeout(linkStyleSaveTimeout.current);
+
+        linkStyleSaveTimeout.current = setTimeout(async () => {
+            try {
+                await api.put(`/links/${linkId}`, { style });
+            } catch (error) {
+                console.error('Failed to update link style', error);
+                toast.error('Failed to save style');
+            }
+        }, 500);
     };
 
     const onApplyPresetToLinks = async (style: string) => {
@@ -297,24 +313,98 @@ export default function HubEditorPage() {
         <div className="min-h-screen text-white flex flex-col relative w-full h-full">
             {/* Avatar Picker Modal */}
             {showAvatarPicker && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-50">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white">Select Avatar</h3>
-                            <button onClick={() => setShowAvatarPicker(false)} className="text-slate-400 hover:text-white">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden">
+                        <div className="flex justify-between items-center mb-6 relative z-10">
+                            <div className="flex items-center space-x-2">
+                                <User className="w-5 h-5 text-indigo-500" />
+                                <h3 className="text-xl font-bold text-white">Choose Avatar</h3>
+                            </div>
+                            <button onClick={() => setShowAvatarPicker(false)} className="text-slate-400 hover:text-white transition-colors">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="grid grid-cols-4 gap-4">
-                            {AVATAR_OPTIONS.map((url, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => onUpdateAvatar(url)}
-                                    className="aspect-square rounded-full border-2 border-slate-700 hover:border-green-500 hover:scale-105 transition-all overflow-hidden bg-slate-800"
-                                >
-                                    <img src={url} alt={`Avatar ${i}`} className="w-full h-full object-cover" />
-                                </button>
-                            ))}
+
+                        <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+                            {/* Custom Upload Section */}
+                            <div className="space-y-3 p-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
+                                <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Custom Upload</h4>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <label className="flex-1 cursor-pointer group relative overflow-hidden rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-500 transition-all p-3 flex flex-col items-center justify-center text-center space-y-2">
+                                        <Camera className="w-6 h-6 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+                                        <span className="text-xs text-slate-400 group-hover:text-indigo-300">Upload Image</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    if (file.size > 1024 * 1024) {
+                                                        toast.error("Image too large (Max 1MB)");
+                                                        return;
+                                                    }
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        onUpdateAvatar(reader.result as string);
+                                                        setShowAvatarPicker(false);
+                                                        toast.success("Custom avatar uploaded!");
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                    <div className="flex-1 flex flex-col justify-center space-y-2">
+                                        <span className="text-xs text-slate-500">Or paste an external URL</span>
+                                        <div className="flex rounded-lg overflow-hidden border border-zinc-700 focus-within:border-indigo-500 transition-colors">
+                                            <input
+                                                type="text"
+                                                placeholder="https://example.com/me.jpg"
+                                                className="w-full bg-zinc-900 px-3 py-2 text-sm text-white outline-none placeholder:text-zinc-600"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        const val = e.currentTarget.value;
+                                                        if (val) {
+                                                            onUpdateAvatar(val);
+                                                            setShowAvatarPicker(false);
+                                                            toast.success("Avatar URL updated!");
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-zinc-800" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-zinc-950 px-2 text-slate-500">Or choose a preset</span>
+                                </div>
+                            </div>
+
+                            {/* Presets Grid */}
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                                {AVATAR_OPTIONS.map((url, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            onUpdateAvatar(url);
+                                            setShowAvatarPicker(false);
+                                        }}
+                                        className="group relative aspect-square rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700 hover:border-indigo-500 hover:shadow-indigo-500/20 transition-all hover:scale-105"
+                                        title="Select Avatar"
+                                    >
+                                        <img src={url} alt={`Avatar ${i}`} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/10 transition-colors" />
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

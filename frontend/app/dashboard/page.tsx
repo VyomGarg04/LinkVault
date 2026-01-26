@@ -6,15 +6,17 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { LinkHub } from '@/types';
 import Link from 'next/link';
-import { Plus, ExternalLink, Edit2, BarChart2, Trash2, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Plus, ExternalLink, Edit2, BarChart2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import UserDropdown from '@/app/components/UserDropdown';
+import HubSettingsModal from '@/app/components/HubSettingsModal';
 
 export default function DashboardPage() {
     const { user, isLoading, logout } = useAuth();
     const router = useRouter();
     const [hubs, setHubs] = useState<LinkHub[]>([]);
     const [fetching, setFetching] = useState(true);
+    const [settingsHub, setSettingsHub] = useState<LinkHub | null>(null);
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -65,6 +67,15 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen text-white">
+            <HubSettingsModal
+                isOpen={!!settingsHub}
+                onClose={() => setSettingsHub(null)}
+                hub={settingsHub}
+                onUpdate={(updatedHub) => {
+                    setHubs(hubs.map(h => h.id === updatedHub.id ? updatedHub : h));
+                }}
+            />
+
             <nav className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
@@ -99,7 +110,7 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div
                             onClick={() => router.push('/dashboard/new')}
-                            className="group relative h-56 rounded-2xl border border-dashed border-white/20 hover:border-green-500/50 hover:bg-green-500/5 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden"
+                            className="group relative min-h-[14rem] h-full rounded-2xl border border-dashed border-white/20 hover:border-green-500/50 hover:bg-green-500/5 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden"
                         >
                             <div className="w-16 h-16 rounded-full bg-white/5 group-hover:bg-green-500/20 flex items-center justify-center transition-colors mb-4 relative z-10">
                                 <Plus className="w-8 h-8 text-slate-400 group-hover:text-green-400 transition-colors" />
@@ -109,12 +120,13 @@ export default function DashboardPage() {
                         </div>
 
                         {hubs.map((hub) => (
-                            <div key={hub.id} onClick={() => router.push(`/hubs/${hub.id}/edit`)} className="glass-card rounded-2xl p-6 h-56 flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+                            <div key={hub.id} onClick={() => router.push(`/hubs/${hub.id}/edit`)} className="glass-card rounded-2xl p-6 min-h-[14rem] flex flex-col justify-between group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
                                 <div>
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex-1 min-w-0 pr-4">
                                             <h3 className="text-xl font-bold text-white truncate group-hover:text-green-400 transition-colors">{hub.title}</h3>
                                             <div className="text-sm text-slate-500 font-mono truncate mt-1">/{hub.slug}</div>
+                                            {hub.description && <p className="text-xs text-slate-400 mt-2 line-clamp-2">{hub.description}</p>}
                                         </div>
                                         {hub.isActive ? (
                                             <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" title="Active"></span>
@@ -137,9 +149,16 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t border-white/5 opacity-60 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex space-x-1">
-                                        <Link href={`/hubs/${hub.id}/edit`} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-all hover:scale-110" title="Edit">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSettingsHub(hub);
+                                            }}
+                                            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-all hover:scale-110"
+                                            title="Edit Hub Details"
+                                        >
                                             <Edit2 className="w-4 h-4" />
-                                        </Link>
+                                        </button>
                                         <Link href={`/analytics/${hub.id}`} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-all hover:scale-110" title="Analytics">
                                             <BarChart2 className="w-4 h-4" />
                                         </Link>
@@ -163,7 +182,7 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 )}
-            </main >
-        </div >
+            </main>
+        </div>
     );
 }

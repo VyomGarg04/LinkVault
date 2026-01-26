@@ -22,6 +22,67 @@ const FONTS = [
     { id: 'playfair', name: 'Playfair (Elegant)' },
 ];
 
+// Optimized ColorInput component defined outside to verify stability
+const ColorInput = ({
+    label,
+    value,
+    onChange,
+    propKey,
+    activePicker,
+    onToggle
+}: {
+    label: string;
+    value: string;
+    onChange: (val: string) => void;
+    propKey: string;
+    activePicker: string | null;
+    onToggle: (key: string | null) => void;
+}) => {
+    // We use local state to ensure the input keying is smooth
+    const [localValue, setLocalValue] = useState(value);
+
+    // Sync from prop only when it changes (e.g. undo/reset)
+    useEffect(() => {
+        setLocalValue(value);
+    }, [value]);
+
+    return (
+        <div className="relative">
+            <label className="text-sm font-medium text-slate-400 mb-1 block">{label}</label>
+            <div className="flex items-center space-x-2">
+                <button
+                    onClick={() => onToggle(activePicker === propKey ? null : propKey as string)}
+                    className="w-10 h-10 rounded-lg border border-slate-700 shadow-sm"
+                    style={{ backgroundColor: localValue }}
+                />
+                <input
+                    type="text"
+                    value={localValue}
+                    onChange={(e) => {
+                        setLocalValue(e.target.value);
+                        onChange(e.target.value);
+                    }}
+                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
+                />
+            </div>
+            {activePicker === propKey && (
+                <div className="absolute z-10 mt-2">
+                    <div className="fixed inset-0 z-0" onClick={() => onToggle(null)} />
+                    <div className="relative z-10">
+                        <HexColorPicker
+                            color={localValue}
+                            onChange={(c) => {
+                                setLocalValue(c);
+                                onChange(c);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleChange, onDraftUpdate, onApplyPresetToLinks }: ThemeEditorProps) {
     const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
     const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
@@ -40,32 +101,7 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
         onChange({ ...theme, [key]: color });
     };
 
-    const ColorInput = ({ label, propKey }: { label: string, propKey: keyof ThemeConfig }) => (
-        <div className="relative">
-            <label className="text-sm font-medium text-slate-400 mb-1 block">{label}</label>
-            <div className="flex items-center space-x-2">
-                <button
-                    onClick={() => setActiveColorPicker(activeColorPicker === propKey ? null : propKey as string)}
-                    className="w-10 h-10 rounded-lg border border-slate-700 shadow-sm"
-                    style={{ backgroundColor: theme[propKey] as string }}
-                />
-                <input
-                    type="text"
-                    value={theme[propKey] as string}
-                    onChange={(e) => handleColorChange(propKey, e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                />
-            </div>
-            {activeColorPicker === propKey && (
-                <div className="absolute z-10 mt-2">
-                    <div className="fixed inset-0 z-0" onClick={() => setActiveColorPicker(null)} />
-                    <div className="relative z-10">
-                        <HexColorPicker color={theme[propKey] as string} onChange={(c) => handleColorChange(propKey, c)} />
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
@@ -98,8 +134,22 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                     <span>Colors</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
-                    <ColorInput label="Background Color" propKey="bgColor" />
-                    <ColorInput label="Text Color" propKey="textColor" />
+                    <ColorInput
+                        label="Background Color"
+                        propKey="bgColor"
+                        value={theme.bgColor as string}
+                        onChange={(c) => handleColorChange('bgColor', c)}
+                        activePicker={activeColorPicker}
+                        onToggle={setActiveColorPicker}
+                    />
+                    <ColorInput
+                        label="Text Color"
+                        propKey="textColor"
+                        value={theme.textColor as string}
+                        onChange={(c) => handleColorChange('textColor', c)}
+                        activePicker={activeColorPicker}
+                        onToggle={setActiveColorPicker}
+                    />
 
                 </div>
             </div>

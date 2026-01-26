@@ -8,6 +8,64 @@ interface LinkStyleEditorProps {
     onChange: (value: string) => void;
 }
 
+interface LinkColorInputProps {
+    label: string;
+    value?: string;
+    onChange: (color: string) => void;
+    propKey: string;
+    activePicker: string | null;
+    onToggle: (key: string | null) => void;
+}
+
+const LinkColorInput = ({ label, value, onChange, propKey, activePicker, onToggle }: LinkColorInputProps) => {
+    const [localValue, setLocalValue] = useState(value);
+
+    useEffect(() => {
+        setLocalValue(value);
+    }, [value]);
+
+    return (
+        <div className="relative">
+            <label className="text-xs text-slate-500 uppercase font-bold mb-1 block">{label}</label>
+            <div className="flex items-center space-x-2">
+                <button
+                    onClick={() => onToggle(activePicker === propKey ? null : propKey as string)}
+                    className="w-8 h-8 rounded-lg border border-slate-700 shadow-sm transition-transform hover:scale-105"
+                    style={{ backgroundColor: localValue || '#000000' }}
+                />
+                <div className="flex-1 relative">
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">#</span>
+                    <input
+                        type="text"
+                        value={(localValue || '').replace('#', '')}
+                        onChange={(e) => {
+                            const newVal = `#${e.target.value}`;
+                            setLocalValue(newVal);
+                            onChange(newVal);
+                        }}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-1.5 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        onFocus={() => onToggle(null)} 
+                    />
+                </div>
+            </div>
+            {activePicker === propKey && (
+                <div className="absolute z-20 mt-2 right-0">
+                    <div className="fixed inset-0 z-0" onClick={() => onToggle(null)} />
+                    <div className="relative z-10">
+                        <HexColorPicker 
+                            color={localValue || '#000000'} 
+                            onChange={(c) => {
+                                setLocalValue(c);
+                                onChange(c);
+                            }} 
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProps) {
     const [style, setStyle] = useState<LinkStyle>({});
 
@@ -48,66 +106,24 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
 
             {/* Controls Grid */}
             <div className="grid grid-cols-3 gap-3">
-
                 {/* Color Controls */}
                 <div className="col-span-3 grid grid-cols-2 gap-3 mt-2">
-                    {/* Background Color */}
-                    <div className="relative">
-                        <label className="text-xs text-slate-500 uppercase font-bold mb-1 block">Background</label>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => setActiveColorPicker(activeColorPicker === 'bgColor' ? null : 'bgColor')}
-                                className="w-8 h-8 rounded-lg border border-slate-700 shadow-sm transition-transform hover:scale-105"
-                                style={{ backgroundColor: style.bgColor || '#ffffff' }}
-                            />
-                            <div className="flex-1 relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">#</span>
-                                <input
-                                    type="text"
-                                    value={(style.bgColor || '').replace('#', '')}
-                                    onChange={(e) => updateStyle('bgColor', `#${e.target.value}`)}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-1.5 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                />
-                            </div>
-                        </div>
-                        {activeColorPicker === 'bgColor' && (
-                            <div className="absolute z-20 mt-2">
-                                <div className="fixed inset-0 z-0" onClick={() => setActiveColorPicker(null)} />
-                                <div className="relative z-10">
-                                    <HexColorPicker color={style.bgColor || '#ffffff'} onChange={(c) => updateStyle('bgColor', c)} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Text Color */}
-                    <div className="relative">
-                        <label className="text-xs text-slate-500 uppercase font-bold mb-1 block">Text</label>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => setActiveColorPicker(activeColorPicker === 'textColor' ? null : 'textColor')}
-                                className="w-8 h-8 rounded-lg border border-slate-700 shadow-sm transition-transform hover:scale-105"
-                                style={{ backgroundColor: style.textColor || '#000000' }}
-                            />
-                            <div className="flex-1 relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">#</span>
-                                <input
-                                    type="text"
-                                    value={(style.textColor || '').replace('#', '')}
-                                    onChange={(e) => updateStyle('textColor', `#${e.target.value}`)}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-1.5 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                />
-                            </div>
-                        </div>
-                        {activeColorPicker === 'textColor' && (
-                            <div className="absolute z-20 mt-2 right-0">
-                                <div className="fixed inset-0 z-0" onClick={() => setActiveColorPicker(null)} />
-                                <div className="relative z-10">
-                                    <HexColorPicker color={style.textColor || '#000000'} onChange={(c) => updateStyle('textColor', c)} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <LinkColorInput
+                        label="Background"
+                        value={style.bgColor}
+                        onChange={(c) => updateStyle('bgColor', c)}
+                        propKey="bgColor"
+                        activePicker={activeColorPicker}
+                        onToggle={setActiveColorPicker}
+                    />
+                    <LinkColorInput
+                        label="Text"
+                        value={style.textColor}
+                        onChange={(c) => updateStyle('textColor', c)}
+                        propKey="textColor"
+                        activePicker={activeColorPicker}
+                        onToggle={setActiveColorPicker}
+                    />
                 </div>
 
                 {/* Animation Select */}
@@ -142,7 +158,7 @@ export default function LinkStyleEditor({ value, onChange }: LinkStyleEditorProp
                                 setStyle({});
                                 onChange('{}');
                             } else {
-                                    const combos: Record<string, LinkStyle> = {
+                                const combos: Record<string, LinkStyle> = {
                                     gold: { highlight: true, bgColor: '#fbfbfb', textColor: '#d97706', animation: 'beam' },
                                     danger: { highlight: true, bgColor: '#fee2e2', textColor: '#ef4444', animation: 'pulse' },
                                     royal: { highlight: true, bgColor: '#1e1b4b', textColor: '#c7d2fe', animation: 'shine' },
