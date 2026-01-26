@@ -12,6 +12,16 @@ const getBaseUrl = () => {
     return 'http://localhost:3001/api';
 };
 
+// Public API instance - NO credentials sent
+// Use this for public routes that don't require authentication
+export const publicApi = axios.create({
+    baseURL: getBaseUrl(),
+    withCredentials: false,  // Don't send cookies for public routes
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
 const api = axios.create({
     baseURL: getBaseUrl(),
     withCredentials: true,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import api from '@/lib/api';
+import { publicApi } from '@/lib/api';
 import { LinkHub } from '@/types';
 import { ExternalLink } from 'lucide-react';
 import Image from 'next/image';
@@ -30,7 +30,7 @@ export default function PublicHubPage() {
             const fetchHub = async () => {
                 try {
                     // Call new endpoint structure
-                    const { data } = await api.get(`/public/${params.username}/${params.slug}`);
+                    const { data } = await publicApi.get(`/public/${params.username}/${params.slug}`);
                     setHub(data.hub);
                 } catch (err) {
                     setError(true);
@@ -45,7 +45,7 @@ export default function PublicHubPage() {
     const handleLinkClick = async (linkId: string, url: string) => {
         // Track click asynchronously
         try {
-            await api.post(`/public/links/${linkId}/click`);
+            await publicApi.post(`/public/links/${linkId}/click`);
         } catch (e) {
             console.error('Failed to track click', e);
         }
