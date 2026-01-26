@@ -99,14 +99,30 @@ export const getPublicHub = async (req: Request, res: Response) => {
         const userAgent = req.headers['user-agent'] || '';
         const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || '127.0.0.1';
 
+
         // Handle comma-separated IPs (x-forwarded-for: client, proxy1, proxy2)
         const ipList = Array.isArray(rawIp) ? rawIp : rawIp.split(',');
         let cleanIp = ipList[0].trim().replace(/^::ffff:/, '');
         if (cleanIp === '::1') cleanIp = '127.0.0.1';
 
-        const geo = geoip.lookup(cleanIp);
-        // Fallback for localhost development -> Default to 'IN' (India) for testing
-        const country = geo ? geo.country : (cleanIp === '127.0.0.1' ? 'IN' : null);
+        // Geolocation Logic with Fallbacks
+        let country = req.headers['x-vercel-ip-country'] as string || 
+                      req.headers['cf-ipcountry'] as string || 
+                      null;
+
+        if (!country) {
+             const geo = geoip.lookup(cleanIp);
+             if (geo) {
+                 country = geo.country;
+             }
+        }
+
+        // Final fallback & normalization
+        if (cleanIp === '127.0.0.1' && !country) country = 'IN'; // Dev Fallback
+        
+        // Ensure strictly uppercase or null
+        country = country ? country.toUpperCase() : null;
+
 
         const context = { userAgent, country, ip: cleanIp };
         console.log(`[PublicHub] Eval Context: IP=${cleanIp} Country=${country} UA=${userAgent.substring(0, 20)}...`);
