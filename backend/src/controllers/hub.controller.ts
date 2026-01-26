@@ -24,19 +24,20 @@ export const getMyHubs = async (req: AuthRequest, res: Response) => {
             where: { userId: req.user.id },
             orderBy: { createdAt: 'desc' },
             include: {
-                links: { where: { deletedAt: null } },
                 _count: {
-                    select: { visits: true }
+                    select: { 
+                        visits: true,
+                        links: { where: { deletedAt: null } }
+                    }
                 }
             }
         });
 
-        // Manually calculate counts and sanitize response
+        // Map response
         const hubsWithCounts = hubs.map(hub => ({
             ...hub,
-            links: undefined, // Don't send full links list to dashboard
             _count: {
-                links: hub.links.length,
+                links: hub._count?.links || 0,
                 visits: hub._count?.visits || 0
             }
         }));
@@ -52,12 +53,15 @@ export const createHub = async (req: AuthRequest, res: Response) => {
     try {
         const data = createHubSchema.parse(req.body);
 
-        const existingHub = await prisma.linkHub.findUnique({
-            where: { slug: data.slug }
+        const existingHub = await prisma.linkHub.findFirst({
+            where: {
+                userId: req.user.id,
+                slug: data.slug
+            }
         });
 
         if (existingHub) {
-            return res.status(400).json({ message: 'Hub with this slug already exists' });
+            return res.status(400).json({ message: 'You already have a hub with this slug' });
         }
 
         const hub = await prisma.linkHub.create({
@@ -86,7 +90,8 @@ export const getHubById = async (req: AuthRequest, res: Response) => {
                 links: {
                     where: { deletedAt: null },
                     orderBy: { position: 'asc' }
-                }
+                },
+                rules: true
             }
         });
 

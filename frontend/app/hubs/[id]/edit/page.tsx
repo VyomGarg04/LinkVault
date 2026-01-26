@@ -100,19 +100,17 @@ export default function HubEditorPage() {
         if (user && params.id) {
             const fetchData = async () => {
                 try {
-                    const [hubRes, linksRes, rulesRes] = await Promise.all([
-                        api.get(`/hubs/${params.id}`),
-                        api.get(`/hubs/${params.id}/links`),
-                        api.get(`/hubs/${params.id}/rules`) // Fetch Rules for Live Preview
-                    ]);
-                    setHub(hubRes.data.hub);
-                    setLinks(linksRes.data.links);
-                    setRules(rulesRes.data.rules);
+                    const res = await api.get(`/hubs/${params.id}`);
+                    const { hub } = res.data;
+
+                    setHub(hub);
+                    setLinks(hub.links || []);
+                    setRules(hub.rules || []);
 
                     try {
-                        const parsed = typeof hubRes.data.hub.theme === 'string'
-                            ? JSON.parse(hubRes.data.hub.theme)
-                            : hubRes.data.hub.theme || {};
+                        const parsed = typeof hub.theme === 'string'
+                            ? JSON.parse(hub.theme)
+                            : hub.theme || {};
                         setCurrentTheme({
                             bgColor: '#020617',
                             textColor: '#ffffff',
@@ -269,6 +267,24 @@ export default function HubEditorPage() {
         }
     };
 
+    const onApplyPresetToLinks = async (style: string) => {
+        if (!confirm('Apply this style to all existing links? This will overwrite individual customizations.')) return;
+
+        try {
+            // Optimistic update
+            const updatedLinks = links.map(l => ({ ...l, style }));
+            setLinks(updatedLinks);
+
+            // Single Batch API call
+            await api.put(`/hubs/${params.id}/links/style`, { style });
+
+            toast.success('All links updated');
+        } catch (error) {
+            console.error('Failed to batch update', error);
+            toast.error('Failed to update all links on server');
+        }
+    };
+
     const handleDraftUpdate = useCallback((id: string | null, style: string | null) => {
         setDraftLinkStyle({ id, style });
     }, []);
@@ -278,11 +294,11 @@ export default function HubEditorPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex flex-col relative w-full h-full">
+        <div className="min-h-screen text-white flex flex-col relative w-full h-full">
             {/* Avatar Picker Modal */}
             {showAvatarPicker && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-50">
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-50">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold text-white">Select Avatar</h3>
                             <button onClick={() => setShowAvatarPicker(false)} className="text-slate-400 hover:text-white">
@@ -532,6 +548,7 @@ export default function HubEditorPage() {
                             links={links}
                             onLinkStyleChange={onUpdateLinkStyle}
                             onDraftUpdate={handleDraftUpdate}
+                            onApplyPresetToLinks={onApplyPresetToLinks}
                         />
                     )}
                 </div>

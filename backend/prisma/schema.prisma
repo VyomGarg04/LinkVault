@@ -44,7 +44,7 @@ model Session {
 model LinkHub {
   id          String   @id @default(cuid())
   userId      String
-  slug        String   @unique
+  slug        String
   title       String
   description String?
   theme       String // Theme configuration JSON (stored as String for SQLite)
@@ -59,6 +59,7 @@ model LinkHub {
   visits Visit[]
 
   @@map("link_hubs")
+  @@unique([userId, slug])
   @@index([userId])
   @@index([slug])
 }

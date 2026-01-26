@@ -61,6 +61,7 @@ export const createLink = async (req: AuthRequest, res: Response) => {
         const link = await prisma.link.create({
             data: {
                 ...data,
+                style: data.style || JSON.stringify({ bgColor: '#0f172a', textColor: '#ffffff' }), // Default Dark Theme
                 hubId: req.params.hubId,
                 position,
             }
@@ -116,6 +117,31 @@ export const deleteLink = async (req: AuthRequest, res: Response) => {
         });
 
         res.json({ message: 'Link deleted successfully' });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// PUT /api/hubs/:hubId/links/style (Batch Style Update)
+export const updateLinksStyle = async (req: AuthRequest, res: Response) => {
+    try {
+        const { style } = req.body;
+        const { hubId } = req.params;
+
+        // Verify ownership
+        const hub = await prisma.linkHub.findUnique({ where: { id: hubId } });
+        if (!hub) return res.status(404).json({ message: 'Hub not found' });
+        if (hub.userId !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+
+        await prisma.link.updateMany({
+            where: {
+                hubId,
+                deletedAt: null
+            },
+            data: { style }
+        });
+
+        res.json({ message: 'All links updated successfully' });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }

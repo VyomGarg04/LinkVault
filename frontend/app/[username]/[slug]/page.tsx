@@ -74,7 +74,7 @@ export default function PublicHubPage() {
     }
 
     let theme: ThemeConfig = {
-        bgColor: '#020617',
+        bgColor: 'transparent',
         textColor: '#ffffff',
         buttonBgColor: '#0f172a',
         buttonTextColor: '#ffffff',

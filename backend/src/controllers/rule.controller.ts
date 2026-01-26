@@ -59,7 +59,13 @@ export const createRule = async (req: AuthRequest, res: Response) => {
             }
         });
 
-        res.status(201).json({ rule });
+        res.status(201).json({
+            rule: {
+                ...rule,
+                conditions, // Return original objects
+                actions     // Return original objects
+            }
+        });
     } catch (error: any) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ message: error.errors });

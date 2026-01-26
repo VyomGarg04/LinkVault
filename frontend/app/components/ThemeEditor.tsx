@@ -10,6 +10,7 @@ interface ThemeEditorProps {
     links?: LinkItem[];
     onLinkStyleChange?: (id: string, style: string) => void;
     onDraftUpdate?: (id: string | null, style: string | null) => void;
+    onApplyPresetToLinks?: (style: string) => void;
 }
 
 const FONTS = [
@@ -21,11 +22,12 @@ const FONTS = [
     { id: 'playfair', name: 'Playfair (Elegant)' },
 ];
 
-export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleChange, onDraftUpdate }: ThemeEditorProps) {
+export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleChange, onDraftUpdate, onApplyPresetToLinks }: ThemeEditorProps) {
     const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
     const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
     const [draftStyle, setDraftStyle] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [shouldApplyToAll, setShouldApplyToAll] = useState(false);
 
     // Effect to notify parent of draft changes for preview
     useEffect(() => {
@@ -98,28 +100,44 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
                     <ColorInput label="Background Color" propKey="bgColor" />
                     <ColorInput label="Text Color" propKey="textColor" />
-                    <ColorInput label="Button Background" propKey="buttonBgColor" />
-                    <ColorInput label="Button Text" propKey="buttonTextColor" />
+
                 </div>
             </div>
 
             {/* Global Link Styles */}
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200">
-                    <Palette className="w-5 h-5 text-amber-500" />
-                    <span>Global Link Styles</span>
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200">
+                        <Palette className="w-5 h-5 text-amber-500" />
+                        <span>Global Link Styles</span>
+                    </h3>
+                    <label className="flex items-center space-x-2 cursor-pointer group">
+                        <span className={`text-xs font-medium transition-colors ${shouldApplyToAll ? 'text-green-400' : 'text-slate-500 group-hover:text-slate-300'}`}>Apply to all links</span>
+                        <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${shouldApplyToAll ? 'bg-green-500' : 'bg-slate-700'}`}>
+                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${shouldApplyToAll ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={shouldApplyToAll}
+                            onChange={(e) => setShouldApplyToAll(e.target.checked)}
+                            className="hidden"
+                        />
+                    </label>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
 
                     {/* Preset */}
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         <span className="text-xs text-slate-500 uppercase font-bold">Preset Style</span>
                         <select
                             value={theme.preset || 'default'}
                             onChange={(e) => {
                                 const val = e.target.value;
+                                let newTheme = { ...theme };
+                                let styleToApply = null;
+
                                 if (val === 'default') {
-                                    onChange({ ...theme, preset: undefined });
+                                    newTheme = { ...theme, preset: undefined };
                                 } else {
                                     const combos: any = {
                                         gold: { buttonBgColor: '#fbfbfb', buttonTextColor: '#d97706', animation: 'beam' },
@@ -133,8 +151,19 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                                         cyber: { buttonBgColor: '#09090b', buttonTextColor: '#00ffff', animation: 'beam' },
                                     };
                                     const baseStyle = combos[val] || {};
-                                    onChange({ ...theme, ...baseStyle, preset: val });
+                                    newTheme = { ...theme, ...baseStyle, preset: val };
+
+                                    // Prepare style string for links
+                                    if (shouldApplyToAll && onApplyPresetToLinks) {
+                                        styleToApply = JSON.stringify({
+                                            bgColor: baseStyle.buttonBgColor,
+                                            textColor: baseStyle.buttonTextColor,
+                                            animation: baseStyle.animation
+                                        });
+                                        onApplyPresetToLinks(styleToApply);
+                                    }
                                 }
+                                onChange(newTheme);
                             }}
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         >
@@ -156,7 +185,17 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                         <span className="text-xs text-slate-500 uppercase font-bold">Animation</span>
                         <select
                             value={theme.animation || 'none'}
-                            onChange={(e) => onChange({ ...theme, animation: e.target.value === 'none' ? undefined : e.target.value as any })}
+                            onChange={(e) => {
+                                const newAnim = e.target.value === 'none' ? undefined : e.target.value;
+                                if (shouldApplyToAll && onApplyPresetToLinks) {
+                                    onApplyPresetToLinks(JSON.stringify({
+                                        bgColor: theme.buttonBgColor,
+                                        textColor: theme.buttonTextColor,
+                                        animation: newAnim
+                                    }));
+                                }
+                                onChange({ ...theme, animation: newAnim as any });
+                            }}
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         >
                             <option value="none">None</option>

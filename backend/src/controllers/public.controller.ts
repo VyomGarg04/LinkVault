@@ -72,8 +72,12 @@ export const getPublicHub = async (req: Request, res: Response) => {
         // So we should fetch ALL links, but user sees only those that are (isActive AND not hidden) OR (shown by rule).
         // To simplify: We fetch ALL links. Calculate visibility based on isActive + Rules.
 
-        const hub = await prisma.linkHub.findUnique({
-            where: { slug },
+        // Fetch Hub with scoped username + slug
+        const hub = await prisma.linkHub.findFirst({
+            where: {
+                slug,
+                user: { username }
+            },
             include: {
                 user: { select: { id: true, name: true, avatar: true, username: true } },
                 links: {
@@ -89,10 +93,6 @@ export const getPublicHub = async (req: Request, res: Response) => {
 
         if (!hub || !hub.isActive) {
             return res.status(404).json({ message: 'Hub not found or inactive' });
-        }
-
-        if (hub.user.username !== username) {
-            return res.status(404).json({ message: 'Hub not found for this user' });
         }
 
         // --- RULE EVALUATION ---
