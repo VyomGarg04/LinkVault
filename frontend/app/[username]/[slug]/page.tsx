@@ -32,7 +32,16 @@ export default function PublicHubPage() {
                     // Call new endpoint structure
                     const { data } = await api.get(`/public/${params.username}/${params.slug}`);
                     setHub(data.hub);
-                } catch (err) {
+                } catch (err: any) {
+                    console.error("DEBUG: Failed to fetch hub", err);
+                    if (err.response) {
+                        console.error("DEBUG: Response Status:", err.response.status);
+                        console.error("DEBUG: Response Data:", err.response.data);
+                    } else if (err.request) {
+                        console.error("DEBUG: No response received (Network/CORS?)", err.request);
+                    } else {
+                        console.error("DEBUG: Request setup error", err.message);
+                    }
                     setError(true);
                 } finally {
                     setLoading(false);
