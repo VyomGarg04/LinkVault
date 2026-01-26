@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import axios from 'axios';
 import api from '@/lib/api';
 import { LinkHub } from '@/types';
+import { ExternalLink } from 'lucide-react';
+import Image from 'next/image';
+import { getFaviconUrl } from '@/lib/utils';
 import { ThemeConfig } from '@/types';
 import LinkCard from '@/app/components/LinkCard';
 
@@ -27,11 +29,10 @@ export default function PublicHubPage() {
         if (params.slug) {
             const fetchHub = async () => {
                 try {
-                    // Use RELATIVE path - Next.js rewrites will proxy to backend (NO CORS!)
-                    const { data } = await axios.get(`/api/public/${params.username}/${params.slug}`);
+                    // Call new endpoint structure
+                    const { data } = await api.get(`/public/${params.username}/${params.slug}`);
                     setHub(data.hub);
-                } catch (err: any) {
-                    console.error("DEBUG: Failed to fetch hub", err);
+                } catch (err) {
                     setError(true);
                 } finally {
                     setLoading(false);
@@ -39,15 +40,16 @@ export default function PublicHubPage() {
             };
             fetchHub();
         }
-    }, [params.slug, params.username]);
+    }, [params.slug]);
 
     const handleLinkClick = async (linkId: string, url: string) => {
+        // Track click asynchronously
         try {
-            // Also use relative path for click tracking
-            await axios.post(`/api/public/links/${linkId}/click`);
+            await api.post(`/public/links/${linkId}/click`);
         } catch (e) {
             console.error('Failed to track click', e);
         }
+        // Navigate
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 
@@ -88,10 +90,12 @@ export default function PublicHubPage() {
             className="min-h-screen overflow-y-auto transition-colors duration-300 relative overflow-x-hidden"
             style={{ backgroundColor: theme.bgColor, color: theme.textColor, fontFamily: theme.fontFamily }}
         >
+            {/* Premium Background Elements (Visible if theme bg is transparent/dark) */}
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
 
             <div className="max-w-xl mx-auto px-4 py-16 flex flex-col items-center relative z-10">
+                {/* Avatar with Premium Ring */}
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-green-400 to-emerald-600 mb-6 shadow-lg shadow-green-500/20">
                     <div className="w-full h-full rounded-full overflow-hidden border-4 border-black/20 bg-black/20 backdrop-blur-sm">
                         {theme.avatar ? (
@@ -104,9 +108,11 @@ export default function PublicHubPage() {
                     </div>
                 </div>
 
+                {/* Header */}
                 <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-center tracking-tight">{hub.title}</h1>
                 <p className="text-center mb-10 max-w-md opacity-80 leading-relaxed font-light">{hub.description}</p>
 
+                {/* Links */}
                 <div className="w-full space-y-4">
                     {hub.links.map((link: any) => (
                         <LinkCard
@@ -118,6 +124,7 @@ export default function PublicHubPage() {
                     ))}
                 </div>
 
+                {/* Footer */}
                 <div className="mt-16 text-sm opacity-60 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     Powered by <a href="/" className="hover:underline font-bold hover:text-green-400 transition-colors">Link Vault</a>
