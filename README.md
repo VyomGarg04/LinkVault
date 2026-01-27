@@ -68,7 +68,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 - **Render** - Backend hosting
 - **Neon** - PostgreSQL database
 
-## 🚀 Getting Started
+## 🚀 Getting Started (To run on local host)
 
 ### Prerequisites
 - Node.js 18+
@@ -136,7 +136,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
 
-## �️ Usage Guide
+## Usage Guide (For regular user)
 
 1.  **Register & Login**:
     - Navigate to the frontend URL (e.g., `https://link-vault-orcin.vercel.app`).
@@ -158,7 +158,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
     - Preview changes in real-time on the phone mock-up.
 
 5.  **Share Your Hub**:
-    - Your public hub is accessible at `https://link-vault-orcin.vercel.app/your-handle`.
+    - Your public hub is accessible at `https://link-vault-orcin.vercel.app/your-username/your-handle`.
     - Share this link on your social media bios.
 
 6.  **View Analytics**:
