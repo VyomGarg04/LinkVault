@@ -229,10 +229,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License.
 
-## 👨‍💻 Author
+## 👨‍💻 Contributors
 
 **Vyom Garg**
 - GitHub: [@VyomGarg04](https://github.com/VyomGarg04)
+  
+**Priyanshu Thakur**
+- GitHub: [@Priyanshu-20079](https://github.com/Priyanshu-20079)
+
+**Samaira**
+- GitHub: [@samaira-pixel](https://github.com/samaira-pixel)
 
 ---
 
