@@ -2,6 +2,12 @@
 
 > **One Link to Rule Them All** - A smart, intelligent link hub generator for the modern web.
 
+## 📖 Solution Overview
+
+Link Vault is a powerful, full-stack application designed to streamline how users share their digital presence. acting as a central "hub" for all your important links. Whether you are a content creator, business, or developer, Link Vault allows you to create beautiful, customizable landing pages that aggregate your social media profiles, portfolios, and promotional content into a single accessible URL.
+
+Beyond simple link listing, Link Vault introduces **"Smart Links"**—links that behave intelligently based on rules you define. Display specific links only during certain hours, target users based on their device type (iOS/Android), or filter by geographic location. Coupled with real-time analytics, this solution provides deep insights into your audience's engagement, allowing for data-driven decisions to optimize your reach.
+
 ![Link Vault](https://img.shields.io/badge/Link%20Vault-Smart%20Links-10b981?style=for-the-badge&logo=link&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)
@@ -130,7 +136,36 @@
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
 
-## 📁 Project Structure
+## �️ Usage Guide
+
+1.  **Register & Login**:
+    - Navigate to the frontend URL (e.g., `https://link-vault-orcin.vercel.app`).
+    - Create a new account or log in with existing credentials.
+
+2.  **Create a Link Hub**:
+    - From the dashboard, click "Create Hub".
+    - Choose a unique handle (e.g., `my-brand`) and a display name.
+
+3.  **Manage Links**:
+    - Enter your hub editor.
+    - Add links with a title and URL.
+    - Use the drag-and-drop interface to reorder them.
+    - Toggle visibility or set "Smart Rules" (time, device, location) for each link.
+
+4.  **Customize Appearance**:
+    - Go to the "Appearance" tab.
+    - Select a theme, upload a profile picture, and choose background animations.
+    - Preview changes in real-time on the phone mock-up.
+
+5.  **Share Your Hub**:
+    - Your public hub is accessible at `https://link-vault-orcin.vercel.app/your-handle`.
+    - Share this link on your social media bios.
+
+6.  **View Analytics**:
+    - Click the "Analytics" button on your dashboard.
+    - Monitor page views, link clicks, device types, and geographic data.
+
+## �📁 Project Structure
 
 ```
 LinkVault/
