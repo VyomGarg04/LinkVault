@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { publicApi } from '@/lib/api';
 import { LinkHub } from '@/types';
-import { ExternalLink } from 'lucide-react';
-import Image from 'next/image';
-import { getFaviconUrl } from '@/lib/utils';
 import { ThemeConfig } from '@/types';
 import LinkCard from '@/app/components/LinkCard';
+import DataFlowBackground from '@/app/components/DataFlowBackground';
 
 interface PublicHub extends LinkHub {
     user: {
@@ -56,6 +54,7 @@ export default function PublicHubPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <DataFlowBackground />
                 <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
@@ -63,10 +62,11 @@ export default function PublicHubPage() {
 
     if (error || !hub) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
-                <h1 className="text-4xl font-bold mb-4">404</h1>
-                <p className="text-slate-400 mb-8">This Link Vault does not exist or is inactive.</p>
-                <a href="/" className="px-6 py-3 bg-green-600 rounded-full font-medium hover:bg-green-500 transition-colors">
+            <div className="min-h-screen flex flex-col items-center justify-center text-white p-4 relative">
+                <DataFlowBackground />
+                <h1 className="text-4xl font-bold mb-4 relative z-10">404</h1>
+                <p className="text-slate-400 mb-8 relative z-10">This Link Vault does not exist or is inactive.</p>
+                <a href="/" className="px-6 py-3 bg-green-600 rounded-full font-medium hover:bg-green-500 transition-colors relative z-10">
                     Create your own Link Vault
                 </a>
             </div>
@@ -85,14 +85,24 @@ export default function PublicHubPage() {
         theme = { ...theme, ...parsed };
     } catch (e) { }
 
+    // Determine if we should show the data flow background
+    // Only show if theme background is transparent or very dark
+    const showDataFlow = theme.bgColor === 'transparent' ||
+        theme.bgColor.toLowerCase() === '#000000' ||
+        theme.bgColor.toLowerCase() === '#000' ||
+        theme.bgColor.toLowerCase().startsWith('#0');
+
     return (
         <div
             className="min-h-screen overflow-y-auto transition-colors duration-300 relative overflow-x-hidden"
-            style={{ backgroundColor: theme.bgColor, color: theme.textColor, fontFamily: theme.fontFamily }}
+            style={{
+                backgroundColor: showDataFlow ? 'transparent' : theme.bgColor,
+                color: theme.textColor,
+                fontFamily: theme.fontFamily
+            }}
         >
-            {/* Premium Background Elements (Visible if theme bg is transparent/dark) */}
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+            {/* Premium Data Flow Background */}
+            {showDataFlow && <DataFlowBackground />}
 
             <div className="max-w-xl mx-auto px-4 py-16 flex flex-col items-center relative z-10">
                 {/* Avatar with Premium Ring */}

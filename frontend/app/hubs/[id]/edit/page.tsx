@@ -270,7 +270,7 @@ export default function HubEditorPage() {
     const onUpdateLinkStyle = (linkId: string, style: string) => {
         // Optimistic update
         setLinks(prev => prev.map(l => l.id === linkId ? { ...l, style } : l));
-        
+
         if (linkStyleSaveTimeout.current) clearTimeout(linkStyleSaveTimeout.current);
 
         linkStyleSaveTimeout.current = setTimeout(async () => {
@@ -508,19 +508,33 @@ export default function HubEditorPage() {
                     {/* Tabs */}
                     <div className="flex space-x-1 bg-slate-900/50 p-1 rounded-lg border border-slate-800 w-fit">
                         <button
-                            onClick={() => setActiveTab('links')}
+                            onClick={() => {
+                                setActiveTab('links');
+                            }}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'links' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                         >
                             Links
                         </button>
                         <button
-                            onClick={() => setActiveTab('rules')}
+                            onClick={() => {
+                                setActiveTab('rules');
+                                // Close any open link form when switching tabs
+                                setEditingLink(null);
+                                setIsAddingLink(false);
+                                reset();
+                            }}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'rules' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                         >
                             Rules
                         </button>
                         <button
-                            onClick={() => setActiveTab('appearance')}
+                            onClick={() => {
+                                setActiveTab('appearance');
+                                // Close any open link form when switching tabs
+                                setEditingLink(null);
+                                setIsAddingLink(false);
+                                reset();
+                            }}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'appearance' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                         >
                             Appearance
@@ -545,10 +559,10 @@ export default function HubEditorPage() {
                                 </button>
                             </div>
 
-                            {/* Add/Edit Link Form */}
-                            {(isAddingLink || editingLink) && (
+                            {/* Add Link Form (only for new links) */}
+                            {isAddingLink && (
                                 <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-4">
-                                    <h3 className="font-semibold text-slate-300">{editingLink ? 'Edit Link' : 'New Link'}</h3>
+                                    <h3 className="font-semibold text-slate-300">New Link</h3>
 
                                     <div className="space-y-3">
                                         <div className="space-y-1">
@@ -575,7 +589,6 @@ export default function HubEditorPage() {
                                         <button
                                             onClick={() => {
                                                 setIsAddingLink(false);
-                                                setEditingLink(null);
                                                 reset();
                                             }}
                                             className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
@@ -590,7 +603,7 @@ export default function HubEditorPage() {
                                             disabled={isSubmitting}
                                             className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
                                         >
-                                            {editingLink ? 'Update' : 'Add'}
+                                            Add
                                         </button>
                                     </div>
                                 </div>
@@ -613,13 +626,64 @@ export default function HubEditorPage() {
                                         strategy={verticalListSortingStrategy}
                                     >
                                         {links.map((link) => (
-                                            <SortableLinkItem
-                                                key={link.id}
-                                                link={link}
-                                                onToggleActive={onToggleActive}
-                                                onEditLink={onEditLink}
-                                                onDeleteLink={onDeleteLink}
-                                            />
+                                            <div key={link.id}>
+                                                <SortableLinkItem
+                                                    link={link}
+                                                    onToggleActive={onToggleActive}
+                                                    onEditLink={onEditLink}
+                                                    onDeleteLink={onDeleteLink}
+                                                    isEditing={editingLink?.id === link.id}
+                                                />
+                                                {/* Inline Edit Form - appears under the link being edited */}
+                                                {editingLink?.id === link.id && (
+                                                    <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-xl rounded-t-none border-t-0 space-y-4 animate-in fade-in slide-in-from-top-2">
+                                                        <h3 className="font-semibold text-slate-300">Edit Link</h3>
+
+                                                        <div className="space-y-3">
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs font-medium text-slate-400">Title</label>
+                                                                <input
+                                                                    {...register('title')}
+                                                                    placeholder="Link Title (e.g. My Instagram)"
+                                                                    className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                                                                />
+                                                                {errors.title && <p className="text-red-400 text-xs">{errors.title.message}</p>}
+                                                            </div>
+
+                                                            <div className="space-y-1">
+                                                                <label className="text-xs font-medium text-slate-400">URL</label>
+                                                                <input
+                                                                    {...register('url')}
+                                                                    placeholder="URL (https://...)"
+                                                                    className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                                                                />
+                                                                {errors.url && <p className="text-red-400 text-xs">{errors.url.message}</p>}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-end space-x-3">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingLink(null);
+                                                                    reset();
+                                                                }}
+                                                                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={handleSubmit(onSaveLink, (errors) => {
+                                                                    console.error("Validation Errors:", errors);
+                                                                    toast.error("Please check the form for errors");
+                                                                })}
+                                                                disabled={isSubmitting}
+                                                                className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
+                                                            >
+                                                                Update
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))}
                                     </SortableContext>
                                 </DndContext>

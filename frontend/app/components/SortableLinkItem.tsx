@@ -8,12 +8,14 @@ export function SortableLinkItem({
     link,
     onToggleActive,
     onEditLink,
-    onDeleteLink
+    onDeleteLink,
+    isEditing = false
 }: {
     link: any,
     onToggleActive: (link: any) => void,
     onEditLink: (link: any) => void,
-    onDeleteLink: (id: string) => void
+    onDeleteLink: (id: string) => void,
+    isEditing?: boolean
 }) {
     const {
         attributes,
@@ -33,12 +35,13 @@ export function SortableLinkItem({
 
     const linkStyle = link.style ? JSON.parse(link.style) : {};
     const customClass = linkStyle.highlight ? 'ring-2 ring-green-500' : '';
+    const editingClass = isEditing ? 'rounded-b-none border-b-0' : '';
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={`group flex items-center p-4 bg-slate-900/40 border border-slate-800 rounded-xl hover:border-slate-700 transition-all ${isDragging ? 'shadow-xl ring-2 ring-indigo-500 bg-slate-800' : customClass}`}
+            className={`group flex items-center p-4 bg-slate-900/40 border border-slate-800 rounded-xl hover:border-slate-700 transition-all ${isDragging ? 'shadow-xl ring-2 ring-indigo-500 bg-slate-800' : customClass} ${editingClass}`}
         >
             <div
                 {...attributes}

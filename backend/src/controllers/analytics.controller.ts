@@ -36,25 +36,25 @@ export const getHubAnalytics = async (req: AuthRequest, res: Response) => {
 
         const linkFilter = includeDeleted ? { hubId } : { hubId, deletedAt: null };
 
-        const [visits, clicks, links, locationGroups] = await Promise.all([
+        // First get all links to get their IDs
+        const links = await prisma.link.findMany({
+            where: linkFilter,
+            select: { id: true, title: true, url: true, isActive: true },
+        });
+
+        const linkIds = links.map(l => l.id);
+
+        // Handle case where there are no links
+        let clicks: { clickedAt: Date; linkId: string }[] = [];
+        let clicksPerLink: { linkId: string; _count: { id: number } }[] = [];
+
+        const [visits, locationGroups, ...clickResults] = await Promise.all([
             prisma.visit.findMany({
                 where: {
                     hubId,
                     visitedAt: { gte: cutoffDate }
                 },
                 select: { visitedAt: true, deviceType: true }
-            }),
-            prisma.click.findMany({
-                where: {
-                    link: linkFilter,
-                    clickedAt: { gte: cutoffDate }
-                },
-                select: { clickedAt: true }
-            }),
-            prisma.link.findMany({
-                where: linkFilter,
-                select: { id: true, title: true, url: true, clickCount: true, isActive: true },
-                orderBy: { clickCount: 'desc' }
             }),
             prisma.visit.groupBy({
                 by: ['country'],
@@ -65,8 +65,32 @@ export const getHubAnalytics = async (req: AuthRequest, res: Response) => {
                 _count: { country: true },
                 orderBy: { _count: { country: 'desc' } },
                 take: 10
-            })
+            }),
+            // Only query clicks if there are links
+            ...(linkIds.length > 0 ? [
+                prisma.click.findMany({
+                    where: {
+                        linkId: { in: linkIds },
+                        clickedAt: { gte: cutoffDate }
+                    },
+                    select: { clickedAt: true, linkId: true }
+                }),
+                prisma.click.groupBy({
+                    by: ['linkId'],
+                    where: {
+                        linkId: { in: linkIds },
+                        clickedAt: { gte: cutoffDate }
+                    },
+                    _count: { id: true }
+                })
+            ] : [])
         ]);
+
+        // Assign click results if they exist
+        if (linkIds.length > 0 && clickResults.length >= 2) {
+            clicks = clickResults[0] as typeof clicks;
+            clicksPerLink = clickResults[1] as typeof clicksPerLink;
+        }
 
         // 2. Aggregate Time Series
         const dateMap = new Map<string, { visits: number; clicks: number }>();
@@ -132,6 +156,18 @@ export const getHubAnalytics = async (req: AuthRequest, res: Response) => {
             ctr = (totalClicks / totalVisits) * 100;
         }
 
+        // 5. Map click counts to links for the selected date range
+        const clickCountMap = new Map<string, number>();
+        clicksPerLink.forEach(cp => {
+            clickCountMap.set(cp.linkId, cp._count.id);
+        });
+
+        // Add clickCount to links and sort by it
+        const linksWithClicks = links.map(link => ({
+            ...link,
+            clickCount: clickCountMap.get(link.id) || 0
+        })).sort((a, b) => b.clickCount - a.clickCount);
+
         res.json({
             range: days,
             timeSeries,
@@ -140,7 +176,7 @@ export const getHubAnalytics = async (req: AuthRequest, res: Response) => {
                 { name: 'Desktop', value: deviceStats.desktop, color: '#6366f1' } // indigo-500
             ],
             locationStats: locationGroups.map(g => ({ country: g.country || 'Unknown', count: g._count.country })),
-            topLinks: links.slice(0, 5), // Top 5
+            topLinks: linksWithClicks.slice(0, 5), // Top 5
             totalVisits,
             totalClicks,
             ctr: parseFloat(ctr.toFixed(1))

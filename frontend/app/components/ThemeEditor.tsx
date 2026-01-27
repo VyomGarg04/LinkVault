@@ -156,24 +156,10 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
 
             {/* Global Link Styles */}
             <div className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200">
-                        <Palette className="w-5 h-5 text-amber-500" />
-                        <span>Global Link Styles</span>
-                    </h3>
-                    <label className="flex items-center space-x-2 cursor-pointer group">
-                        <span className={`text-xs font-medium transition-colors ${shouldApplyToAll ? 'text-green-400' : 'text-slate-500 group-hover:text-slate-300'}`}>Apply to all links</span>
-                        <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${shouldApplyToAll ? 'bg-green-500' : 'bg-slate-700'}`}>
-                            <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${shouldApplyToAll ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                        <input
-                            type="checkbox"
-                            checked={shouldApplyToAll}
-                            onChange={(e) => setShouldApplyToAll(e.target.checked)}
-                            className="hidden"
-                        />
-                    </label>
-                </div>
+                <h3 className="text-lg font-semibold flex items-center space-x-2 text-slate-200 mb-4">
+                    <Palette className="w-5 h-5 text-amber-500" />
+                    <span>Global Link Styles</span>
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
 
                     {/* Preset */}
@@ -184,7 +170,6 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                             onChange={(e) => {
                                 const val = e.target.value;
                                 let newTheme = { ...theme };
-                                let styleToApply = null;
 
                                 if (val === 'default') {
                                     newTheme = { ...theme, preset: undefined };
@@ -202,16 +187,6 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                                     };
                                     const baseStyle = combos[val] || {};
                                     newTheme = { ...theme, ...baseStyle, preset: val };
-
-                                    // Prepare style string for links
-                                    if (shouldApplyToAll && onApplyPresetToLinks) {
-                                        styleToApply = JSON.stringify({
-                                            bgColor: baseStyle.buttonBgColor,
-                                            textColor: baseStyle.buttonTextColor,
-                                            animation: baseStyle.animation
-                                        });
-                                        onApplyPresetToLinks(styleToApply);
-                                    }
                                 }
                                 onChange(newTheme);
                             }}
@@ -237,13 +212,6 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                             value={theme.animation || 'none'}
                             onChange={(e) => {
                                 const newAnim = e.target.value === 'none' ? undefined : e.target.value;
-                                if (shouldApplyToAll && onApplyPresetToLinks) {
-                                    onApplyPresetToLinks(JSON.stringify({
-                                        bgColor: theme.buttonBgColor,
-                                        textColor: theme.buttonTextColor,
-                                        animation: newAnim
-                                    }));
-                                }
                                 onChange({ ...theme, animation: newAnim as any });
                             }}
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -259,6 +227,25 @@ export default function ThemeEditor({ theme, onChange, links = [], onLinkStyleCh
                         </select>
                     </div>
                 </div>
+
+                {/* Save & Apply Button */}
+                {onApplyPresetToLinks && (
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={() => {
+                                const styleToApply = JSON.stringify({
+                                    bgColor: theme.buttonBgColor,
+                                    textColor: theme.buttonTextColor,
+                                    animation: theme.animation
+                                });
+                                onApplyPresetToLinks(styleToApply);
+                            }}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-900/20"
+                        >
+                            Save & Apply to All Links
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Individual Link Styles (Overrides) */}

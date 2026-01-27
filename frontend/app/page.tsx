@@ -1,14 +1,14 @@
 import Link from 'next/link';
-import { ArrowRight, Shield, Zap, Palette, Globe } from 'lucide-react';
+import { ArrowRight, Shield, Zap, Palette } from 'lucide-react';
+import DataFlowBackground from './components/DataFlowBackground';
 
 export default function Home() {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-green-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[500px] bg-emerald-900/20 rounded-full blur-[100px] pointer-events-none" />
+      {/* Premium Data Flow Background */}
+      <DataFlowBackground />
 
-      <nav className="border-b border-white/5 bg-black/20 backdrop-blur-xl relative z-50">
+      <nav className="border-b border-white/5 bg-black/30 backdrop-blur-xl relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="text-2xl font-bold tracking-tight">
@@ -33,7 +33,7 @@ export default function Home() {
 
       <main className="flex-grow flex flex-col items-center justify-center relative z-10 px-4 pt-20 pb-20">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8 animate-float">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span className="text-xs font-medium text-slate-300 tracking-wide uppercase">The Future of Link Management</span>
           </div>
@@ -75,7 +75,7 @@ export default function Home() {
             { icon: Shield, title: "Smart Rules", desc: "Show links based on time, device, or location automatically." },
             { icon: Zap, title: "Instant Analytics", desc: "Real-time insights on clicks, location, and device types." }
           ].map((feature, idx) => (
-            <div key={idx} className="glass-card p-8 rounded-2xl group hover:-translate-y-2 transition-transform duration-500">
+            <div key={idx} className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-2xl group hover:-translate-y-2 transition-transform duration-500 hover:border-green-500/30 hover:bg-white/[0.07]">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl mb-6 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                 <feature.icon className="w-6 h-6 text-green-400" />
               </div>
@@ -88,7 +88,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-white/5 bg-black/40 py-12 relative z-10">
+      <footer className="border-t border-white/5 bg-black/40 backdrop-blur-xl py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-slate-600 text-sm">
             &copy; {new Date().getFullYear()} Link Vault. Crafted for perfection.
