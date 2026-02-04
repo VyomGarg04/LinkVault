@@ -16,18 +16,21 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 ## ✨ Features
 
 ### 🎨 Premium Themes
+
 - Fully customizable aesthetics with glassmorphism support
 - Custom background colors, fonts, and button styles
 - Avatar upload with image cropping
 - Live preview while editing
 
 ### 🧠 Smart Rules
+
 - Show/hide links based on **time of day**
 - Target specific **devices** (mobile/desktop)
 - **Location-based** link visibility
 - Priority-based rule ordering
 
 ### 📊 Instant Analytics
+
 - Real-time click tracking
 - Visitor statistics with device breakdown
 - Geographic location insights
@@ -35,12 +38,14 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 - Top performing links dashboard
 
 ### 🔒 Secure Authentication
+
 - JWT-based authentication with HTTP-only cookies
 - Bcrypt password hashing
 - Session management
 - Secure API endpoints
 
 ### 🎭 Link Customization
+
 - Individual link styling (colors, animations)
 - Drag-and-drop link reordering
 - Global style presets
@@ -49,6 +54,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **Next.js 16** - React framework with App Router
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
@@ -57,6 +63,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 - **React Hook Form** - Form management
 
 ### Backend
+
 - **Node.js + Express** - REST API server
 - **Prisma ORM** - Database management
 - **PostgreSQL** - Production database
@@ -64,6 +71,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 - **Bcrypt** - Password encryption
 
 ### Deployment
+
 - **Vercel** - Frontend hosting
 - **Render** - Backend hosting
 - **Neon** - PostgreSQL database
@@ -71,6 +79,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 ## 🚀 Getting Started (To run on local host)
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 - PostgreSQL database
@@ -78,18 +87,21 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/VyomGarg04/LinkVault.git
    cd LinkVault
    ```
 
 2. **Install frontend dependencies**
+
    ```bash
    cd frontend
    npm install
    ```
 
 3. **Install backend dependencies**
+
    ```bash
    cd ../backend
    npm install
@@ -98,6 +110,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 4. **Configure environment variables**
 
    Create `.env` in `/backend`:
+
    ```env
    DATABASE_URL="postgresql://user:password@host:5432/dbname"
    PORT=3001
@@ -107,11 +120,13 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
    ```
 
    Create `.env.local` in `/frontend`:
+
    ```env
    NEXT_PUBLIC_API_URL="http://localhost:3001/api"
    ```
 
 5. **Run database migrations**
+
    ```bash
    cd backend
    npx prisma migrate dev
@@ -121,12 +136,14 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that
 6. **Start development servers**
 
    Backend:
+
    ```bash
    cd backend
    npm run dev
    ```
 
    Frontend:
+
    ```bash
    cd frontend
    npm run dev
@@ -194,41 +211,46 @@ LinkVault/
 ## 🔌 API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | User login |
-| POST | `/api/auth/logout` | User logout |
-| GET | `/api/auth/me` | Get current user |
+
+| Method | Endpoint             | Description       |
+| ------ | -------------------- | ----------------- |
+| POST   | `/api/auth/register` | Register new user |
+| POST   | `/api/auth/login`    | User login        |
+| POST   | `/api/auth/logout`   | User logout       |
+| GET    | `/api/auth/me`       | Get current user  |
 
 ### Hubs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/hubs` | List user's hubs |
-| POST | `/api/hubs` | Create new hub |
-| GET | `/api/hubs/:id` | Get hub details |
-| PUT | `/api/hubs/:id` | Update hub |
-| DELETE | `/api/hubs/:id` | Delete hub |
+
+| Method | Endpoint        | Description      |
+| ------ | --------------- | ---------------- |
+| GET    | `/api/hubs`     | List user's hubs |
+| POST   | `/api/hubs`     | Create new hub   |
+| GET    | `/api/hubs/:id` | Get hub details  |
+| PUT    | `/api/hubs/:id` | Update hub       |
+| DELETE | `/api/hubs/:id` | Delete hub       |
 
 ### Links
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/hubs/:id/links` | Get hub's links |
-| POST | `/api/hubs/:id/links` | Add link to hub |
-| PUT | `/api/links/:id` | Update link |
-| DELETE | `/api/links/:id` | Delete link |
-| PUT | `/api/links/reorder` | Reorder links |
+
+| Method | Endpoint              | Description     |
+| ------ | --------------------- | --------------- |
+| GET    | `/api/hubs/:id/links` | Get hub's links |
+| POST   | `/api/hubs/:id/links` | Add link to hub |
+| PUT    | `/api/links/:id`      | Update link     |
+| DELETE | `/api/links/:id`      | Delete link     |
+| PUT    | `/api/links/reorder`  | Reorder links   |
 
 ### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/analytics/:id` | Get hub analytics |
+
+| Method | Endpoint             | Description       |
+| ------ | -------------------- | ----------------- |
+| GET    | `/api/analytics/:id` | Get hub analytics |
 
 ### Public
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/public/:username/:slug` | View public hub |
-| POST | `/api/public/links/:id/click` | Track link click |
+
+| Method | Endpoint                      | Description      |
+| ------ | ----------------------------- | ---------------- |
+| GET    | `/api/public/:username/:slug` | View public hub  |
+| POST   | `/api/public/links/:id/click` | Track link click |
 
 ## 🎯 Use Cases
 
@@ -241,18 +263,22 @@ LinkVault/
 ## 📸 Screenshots
 
 ### Landing Page
+
 Premium animated background with data flow visualization
 ![Landing Page](docs/screenshots/landing_page.png)
 
 ### Dashboard
+
 Clean, modern interface for managing multiple hubs
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Hub Editor
+
 Drag-and-drop link management with live preview
 ![Hub Editor](docs/screenshots/hub_editor.png)
 
 ### Analytics
+
 Comprehensive insights with beautiful charts
 ![Analytics](docs/screenshots/analytics.png)
 
@@ -267,12 +293,15 @@ This project is licensed under the MIT License.
 ## 👨‍💻 Contributors
 
 **Vyom Garg**
+
 - GitHub: [@VyomGarg04](https://github.com/VyomGarg04)
-  
+
 **Priyanshu Thakur**
+
 - GitHub: [@Priyanshu-20079](https://github.com/Priyanshu-20079)
 
 **Samaira**
+
 - GitHub: [@samaira-pixel](https://github.com/samaira-pixel)
 
 ---
