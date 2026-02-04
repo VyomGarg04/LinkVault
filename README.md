@@ -262,11 +262,6 @@ LinkVault/
 
 ## 📸 Screenshots
 
-### Landing Page
-
-Premium animated background with data flow visualization
-![Landing Page](docs/screenshots/landing_page.png)
-
 ### Dashboard
 
 Clean, modern interface for managing multiple hubs
