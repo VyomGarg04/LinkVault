@@ -6,7 +6,7 @@
 
 Link Vault is a powerful, full-stack application designed to streamline how users share their digital presence. acting as a central "hub" for all your important links. Whether you are a content creator, business, or developer, Link Vault allows you to create beautiful, customizable landing pages that aggregate your social media profiles, portfolios, and promotional content into a single accessible URL.
 
-Beyond simple link listing, Link Vault introduces **"Smart Links"**—links that behave intelligently based on rules you define. Display specific links only during certain hours, target users based on their device type (iOS/Android), or filter by geographic location. Coupled with real-time analytics, this solution provides deep insights into your audience's engagement, allowing for data-driven decisions to optimize your reach.
+Beyond simple link listing, Link Vault introduces **"Smart Links"** - links that behave intelligently based on rules you define. Display specific links only during certain hours, target users based on their device type (Desktop/Mobile), or filter by geographic location. Coupled with real-time analytics, this solution provides deep insights into your audience's engagement, allowing for data-driven decisions to optimize your reach.
 
 ![Link Vault](https://img.shields.io/badge/Link%20Vault-Smart%20Links-10b981?style=for-the-badge&logo=link&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
@@ -68,7 +68,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"**—links that
 - **Render** - Backend hosting
 - **Neon** - PostgreSQL database
 
-## 🚀 Getting Started
+## 🚀 Getting Started (To run on local host)
 
 ### Prerequisites
 - Node.js 18+
@@ -136,7 +136,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"**—links that
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
 
-## �️ Usage Guide
+## Usage Guide (For regular user)
 
 1.  **Register & Login**:
     - Navigate to the frontend URL (e.g., `https://link-vault-orcin.vercel.app`).
@@ -158,7 +158,7 @@ Beyond simple link listing, Link Vault introduces **"Smart Links"**—links that
     - Preview changes in real-time on the phone mock-up.
 
 5.  **Share Your Hub**:
-    - Your public hub is accessible at `https://link-vault-orcin.vercel.app/your-handle`.
+    - Your public hub is accessible at `https://link-vault-orcin.vercel.app/your-username/your-handle`.
     - Share this link on your social media bios.
 
 6.  **View Analytics**:
