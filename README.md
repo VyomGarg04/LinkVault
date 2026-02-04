@@ -275,7 +275,7 @@ Clean, modern interface for managing multiple hubs
 ### Hub Editor
 
 Drag-and-drop link management with live preview
-![Hub Editor](docs\screenshots\hub_editor.png)
+![Hub Editor](docs/screenshots/hub_editor.png)
 
 ### Analytics
 
